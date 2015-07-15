@@ -6,16 +6,13 @@ extern "C" {
 
 using namespace v8;
 
-void ThreadCount(const FunctionCallbackInfo<Value>& args) {
+void Init(Handle<Object> exports) {
   Isolate* isolate = Isolate::GetCurrent();
-  HandleScope scope(isolate);
-
-  Local<Number> threads = Number::New(isolate, flam3_count_nthreads());
-  args.GetReturnValue().Set(threads);
+  Local<Number> threadCount = Number::New(isolate, flam3_count_nthreads());
+  Local<String> version = String::NewFromUtf8(isolate, flam3_version());
+  PropertyAttribute constant_attributes = static_cast<PropertyAttribute>(ReadOnly | DontDelete);
+  exports->ForceSet(String::NewFromUtf8(isolate, "version"), version, constant_attributes);
+  exports->ForceSet(String::NewFromUtf8(isolate, "threadCount"), threadCount, constant_attributes);
 }
 
-void init(Handle<Object> exports) {
-  NODE_SET_METHOD(exports, "threadCount", ThreadCount);
-}
-
-NODE_MODULE(flam3, init)
+NODE_MODULE(flam3, Init)
