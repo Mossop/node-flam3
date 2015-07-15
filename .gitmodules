@@ -1,0 +1,3 @@
+[submodule "flam3"]
+	path = flam3
+	url = https://github.com/FractalBrew/flam3.git
