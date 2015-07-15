@@ -8,7 +8,8 @@
       "sources": [ "src/node-flam3.cc" ],
       "dependencies": [ "libflam3" ],
       "include_dirs": [ "flam3",
-                        "/usr/include/libxml2" ],
+                        "/usr/include/libxml2",
+                        "<!(node -e \"require('nan')\")" ],
     }, {
       "target_name": "libflam3",
       "type": "static_library",
