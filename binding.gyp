@@ -7,9 +7,7 @@
       "target_name": "flam3",
       "sources": [ "src/node-flam3.cc" ],
       "dependencies": [ "libflam3" ],
-      "include_dirs": [ "flam3",
-                        "/usr/include/libxml2",
-                        "<!(node -e \"require('nan')\")" ],
+      "include_dirs": [ "<!(node -e \"require('nan')\")" ],
     }, {
       "target_name": "libflam3",
       "type": "static_library",
@@ -32,6 +30,8 @@
                           "-ffast-math" ],
       },
       "direct_dependent_settings": {
+        "include_dirs": [ "flam3",
+                          "/usr/include/libxml2" ],
         "libraries": [ "-lxml2" ]
       }
     }

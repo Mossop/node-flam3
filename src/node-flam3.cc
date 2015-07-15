@@ -2,7 +2,7 @@
 #include <nan.h>
 
 extern "C" {
-#include "flam3.h"
+#include <flam3.h>
 }
 
 using namespace v8;
