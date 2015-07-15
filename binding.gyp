@@ -24,10 +24,12 @@
       "include_dirs": [ "/usr/include/libxml2" ],
       "defines": [ "GIT_REV=\"<(flam3-version)\"",
                    "PACKAGE_DATA_DIR=\"\"" ],
-      "cflags": [ "-g",
-                  "-O3",
-                  "-std=gnu99"
-                  "-ffast-math" ],
+      "xcode_settings": {
+        "OTHER_CFLAGS": [ "-g",
+                          "-O3",
+                          "-std=gnu99",
+                          "-ffast-math" ],
+      },
       "direct_dependent_settings": {
         "libraries": [ "-lxml2" ]
       }
