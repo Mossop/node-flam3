@@ -12,7 +12,7 @@ using namespace node;
 class Genome : public node::ObjectWrap {
   public:
     static void Init(Handle<v8::Object> exports);
-    flam3_genome genome;
+    flam3_genome* genome;
 
   private:
     explicit Genome();

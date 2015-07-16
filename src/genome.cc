@@ -3,23 +3,26 @@
 Persistent<Function> Genome::constructor;
 
 Genome::Genome() {
-  memset(&genome, 0, sizeof(flam3_genome));
-  clear_cp(&genome, flam3_defaults_on);
+  genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
+  memset(genome, 0, sizeof(flam3_genome));
+  clear_cp(genome, flam3_defaults_on);
 }
 
 Genome::~Genome() {
+  clear_cp(genome, flam3_defaults_on);
+  flam3_free(genome);
 }
 
 void DoublePropertyGetter(Local<String> property, const PropertyCallbackInfo<Value>& args) {
   Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
-  double* field = reinterpret_cast<double*>(reinterpret_cast<char*>(&(obj->genome)) + args.Data()->IntegerValue());
+  double* field = reinterpret_cast<double*>(reinterpret_cast<char*>(obj->genome) + args.Data()->IntegerValue());
 
   NanReturnValue(NanNew<Number>(*field));
 }
 
 void DoublePropertySetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& args) {
   Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
-  double* field = reinterpret_cast<double*>(reinterpret_cast<char*>(&(obj->genome)) + args.Data()->IntegerValue());
+  double* field = reinterpret_cast<double*>(reinterpret_cast<char*>(obj->genome) + args.Data()->IntegerValue());
 
   *field = value->NumberValue();
 }
