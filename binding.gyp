@@ -5,7 +5,8 @@
   "targets": [
     {
       "target_name": "flam3",
-      "sources": [ "src/node-flam3.cc" ],
+      "sources": [ "src/node-flam3.cc",
+                   "src/genome.cc" ],
       "dependencies": [ "libflam3" ],
       "include_dirs": [ "<!(node -e \"require('nan')\")" ],
     }, {

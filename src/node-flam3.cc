@@ -5,6 +5,8 @@ extern "C" {
 #include <flam3.h>
 }
 
+#include "genome.h"
+
 using namespace v8;
 
 void ThreadCountGetter(Local<String> property, const PropertyCallbackInfo<Value>& args) {
@@ -18,6 +20,8 @@ void VersionGetter(Local<String> property, const PropertyCallbackInfo<Value>& ar
 void Init(Handle<Object> exports) {
   exports->SetAccessor(NanNew<String>("version"), VersionGetter);
   exports->SetAccessor(NanNew<String>("threadCount"), ThreadCountGetter);
+
+  Genome::Init(exports);
 }
 
 NODE_MODULE(flam3, Init)
