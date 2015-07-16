@@ -11,13 +11,18 @@ using namespace node;
 
 class Genome : public node::ObjectWrap {
   public:
-    static void Init(Handle<v8::Object> exports);
-    flam3_genome* genome;
+    static void Export(Handle<v8::Object> exports);
 
   private:
-    explicit Genome();
+    Genome(Local<Object> jsObj);
+    Genome(flam3_genome* g);
+    Genome(flam3_genome* g, Local<Object> jsObj);
     ~Genome();
+
+    void Init(flam3_genome* g, Local<Object> jsObj);
 
     static NAN_METHOD(New);
     static Persistent<v8::Function> constructor;
+
+    flam3_genome* genome;
 };

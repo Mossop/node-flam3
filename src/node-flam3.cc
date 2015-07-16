@@ -21,7 +21,7 @@ void Init(Handle<Object> exports) {
   exports->SetAccessor(NanNew<String>("version"), VersionGetter);
   exports->SetAccessor(NanNew<String>("threadCount"), ThreadCountGetter);
 
-  Genome::Init(exports);
+  Genome::Export(exports);
 }
 
 NODE_MODULE(flam3, Init)
