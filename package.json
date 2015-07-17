@@ -8,7 +8,9 @@
     "flame"
   ],
   "dependencies": {
-    "nan": "^1.8.4"
+    "nan": "1",
+    "libxmljs": "0",
+    "bindings": "1"
   },
   "devDependencies": {
   },

@@ -7,7 +7,8 @@
     {
       "target_name": "libflam3",
       "type": "static_library",
-      "dependencies": [ "action_before_build" ],
+      "dependencies": [ "action_before_build",
+                        "node_modules/libxmljs/vendor/libxml/libxml.gyp:libxml" ],
       "sources": [ "<(SHARED_INTERMEDIATE_DIR)/flam3/flam3.c",
                    "<(SHARED_INTERMEDIATE_DIR)/flam3/filters.c",
                    "<(SHARED_INTERMEDIATE_DIR)/flam3/parser.c",
@@ -22,22 +23,16 @@
       "cflags": [ "-g",
                   "-O3",
                   "-std=gnu99",
-                  "-ffast-math",
-                  "<!@(xml2-config --cflags)" ],
+                  "-ffast-math" ],
       "xcode_settings": {
         "OTHER_CFLAGS": [ "-g",
                           "-O3",
                           "-std=gnu99",
-                          "-ffast-math",
-                          "<!@(xml2-config --cflags)" ],
+                          "-ffast-math" ],
       },
       "direct_dependent_settings": {
-        "cflags": [ "<!@(xml2-config --cflags)" ],
-        "include_dirs": [ "<(SHARED_INTERMEDIATE_DIR)/flam3" ],
-        "libraries": [ "<!@(xml2-config --libs)" ],
-        "xcode_settings": {
-          "OTHER_CFLAGS": [ "<!@(xml2-config --cflags)" ],
-        }
+        "include_dirs": [ "<(SHARED_INTERMEDIATE_DIR)/flam3",
+                          "node_modules/libxmljs/vendor/libxml/include" ],
       }
     }, {
       "target_name": "action_before_build",
