@@ -5,6 +5,8 @@
 using namespace v8;
 
 NAN_GETTER(DoublePropertyGetter) {
+  NanScope();
+
   Local<External> ptr = Local<External>::Cast(args.Data());
   double* field = reinterpret_cast<double*>(ptr->Value());
 
@@ -12,6 +14,8 @@ NAN_GETTER(DoublePropertyGetter) {
 }
 
 NAN_SETTER(DoublePropertySetter) {
+  NanScope();
+
   Local<External> ptr = Local<External>::Cast(args.Data());
   double* field = reinterpret_cast<double*>(ptr->Value());
 
@@ -19,6 +23,8 @@ NAN_SETTER(DoublePropertySetter) {
 }
 
 NAN_GETTER(IntPropertyGetter) {
+  NanScope();
+
   Local<External> ptr = Local<External>::Cast(args.Data());
   int* field = reinterpret_cast<int*>(ptr->Value());
 
@@ -26,6 +32,8 @@ NAN_GETTER(IntPropertyGetter) {
 }
 
 NAN_SETTER(IntPropertySetter) {
+  NanScope();
+
   Local<External> ptr = Local<External>::Cast(args.Data());
   int* field = reinterpret_cast<int*>(ptr->Value());
 
