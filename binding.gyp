@@ -21,19 +21,27 @@
                    "flam3/jpeg.c",
                    "flam3/png.c",
                    "flam3/isaac.c" ],
-      "include_dirs": [ "/usr/include/libxml2" ],
       "defines": [ "GIT_REV=\"<(flam3-version)\"",
                    "PACKAGE_DATA_DIR=\"\"" ],
+      "cflags": [ "-g",
+                  "-O3",
+                  "-std=gnu99",
+                  "-ffast-math",
+                  "<!(xml2-config --cflags)" ],
       "xcode_settings": {
         "OTHER_CFLAGS": [ "-g",
                           "-O3",
                           "-std=gnu99",
-                          "-ffast-math" ],
+                          "-ffast-math",
+                          "<!(xml2-config --cflags)" ],
       },
       "direct_dependent_settings": {
-        "include_dirs": [ "flam3",
-                          "/usr/include/libxml2" ],
-        "libraries": [ "-lxml2" ]
+        "cflags": [ "<!(xml2-config --cflags)" ],
+        "include_dirs": [ "flam3" ],
+        "libraries": [ "<!(xml2-config --libs)" ],
+        "xcode_settings": {
+          "OTHER_CFLAGS": [ "<!(xml2-config --cflags)" ],
+        }
       }
     }
   ]
