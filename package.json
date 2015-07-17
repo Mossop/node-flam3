@@ -23,7 +23,7 @@
     "url": "git+https://github.com/FractalBrew/node-flam3.git"
   },
   "author": "Dave Townsend <dtownsend@oxymoronical.com>",
-  "license": "MPL",
+  "license": "MPL-2.0",
   "gypfile": true,
   "bugs": {
     "url": "https://github.com/FractalBrew/node-flam3/issues"
