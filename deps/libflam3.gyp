@@ -8,7 +8,7 @@
       "target_name": "libflam3",
       "type": "static_library",
       "dependencies": [ "action_before_build",
-                        "node_modules/libxmljs/vendor/libxml/libxml.gyp:libxml" ],
+                        "../node_modules/libxmljs/vendor/libxml/libxml.gyp:libxml" ],
       "sources": [ "<(SHARED_INTERMEDIATE_DIR)/flam3/flam3.c",
                    "<(SHARED_INTERMEDIATE_DIR)/flam3/filters.c",
                    "<(SHARED_INTERMEDIATE_DIR)/flam3/parser.c",
@@ -32,7 +32,7 @@
       },
       "direct_dependent_settings": {
         "include_dirs": [ "<(SHARED_INTERMEDIATE_DIR)/flam3",
-                          "node_modules/libxmljs/vendor/libxml/include" ],
+                          "../node_modules/libxmljs/vendor/libxml/include" ],
       }
     }, {
       "target_name": "action_before_build",
