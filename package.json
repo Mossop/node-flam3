@@ -1,12 +1,17 @@
 {
-  "name": "node-flam3",
+  "name": "flam3",
   "version": "0.0.1",
   "description": "Node access to flam3",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "keywords": [
+    "fractal",
+    "flame"
+  ],
   "dependencies": {
     "nan": "^1.8.4"
   },
-  "devDependencies": {},
+  "devDependencies": {
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "install": "node-gyp rebuild"

@@ -24,4 +24,4 @@ void Init(Handle<Object> exports) {
   Genome::Export(exports);
 }
 
-NODE_MODULE(flam3, Init)
+NODE_MODULE(flam3_bindings, Init)
