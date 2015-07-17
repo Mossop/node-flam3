@@ -4,28 +4,28 @@
 
 using namespace v8;
 
-void DoublePropertyGetter(Local<String> property, const PropertyCallbackInfo<Value>& args) {
+NAN_GETTER(DoublePropertyGetter) {
   Local<External> ptr = Local<External>::Cast(args.Data());
   double* field = reinterpret_cast<double*>(ptr->Value());
 
   NanReturnValue(NanNew<Number>(*field));
 }
 
-void DoublePropertySetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& args) {
+NAN_SETTER(DoublePropertySetter) {
   Local<External> ptr = Local<External>::Cast(args.Data());
   double* field = reinterpret_cast<double*>(ptr->Value());
 
   *field = value->NumberValue();
 }
 
-void IntPropertyGetter(Local<String> property, const PropertyCallbackInfo<Value>& args) {
+NAN_GETTER(IntPropertyGetter) {
   Local<External> ptr = Local<External>::Cast(args.Data());
   int* field = reinterpret_cast<int*>(ptr->Value());
 
   NanReturnValue(NanNew<Number>(*field));
 }
 
-void IntPropertySetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& args) {
+NAN_SETTER(IntPropertySetter) {
   Local<External> ptr = Local<External>::Cast(args.Data());
   int* field = reinterpret_cast<int*>(ptr->Value());
 

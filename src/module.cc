@@ -9,11 +9,11 @@ extern "C" {
 
 using namespace v8;
 
-void ThreadCountGetter(Local<String> property, const PropertyCallbackInfo<Value>& args) {
+NAN_GETTER(ThreadCountGetter) {
   NanReturnValue(NanNew<Number>(flam3_count_nthreads()));
 }
 
-void VersionGetter(Local<String> property, const PropertyCallbackInfo<Value>& args) {
+NAN_GETTER(VersionGetter) {
   NanReturnValue(NanNew<String>(flam3_version()));
 }
 
