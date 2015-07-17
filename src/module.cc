@@ -17,7 +17,7 @@ void VersionGetter(Local<String> property, const PropertyCallbackInfo<Value>& ar
   NanReturnValue(NanNew<String>(flam3_version()));
 }
 
-void Init(Handle<Object> exports) {
+void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
   exports->SetAccessor(NanNew<String>("version"), VersionGetter);
   exports->SetAccessor(NanNew<String>("threadCount"), ThreadCountGetter);
 
