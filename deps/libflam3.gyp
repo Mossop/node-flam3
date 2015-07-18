@@ -1,7 +1,7 @@
 {
   "variables": {
-    "flam3-version": "3.1.1",
-    "flam3-archive": "https://github.com/scottdraves/flam3/archive/v<(flam3-version).tar.gz"
+    "flam3-version": "v3.1.1",
+    "flam3-archive": "https://github.com/scottdraves/flam3/archive/<(flam3-version).tar.gz"
   },
   "targets": [
     {
