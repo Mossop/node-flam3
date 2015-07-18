@@ -1,6 +1,6 @@
 {
   "name": "flam3",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Node access to flam3",
   "main": "lib/index.js",
   "keywords": [
