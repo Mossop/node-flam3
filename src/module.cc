@@ -9,6 +9,14 @@ extern "C" {
 
 using namespace v8;
 
+extern int32_t sGenomeCount;
+
+NAN_GETTER(GenomeCountGetter) {
+  NanScope();
+
+  NanReturnValue(NanNew<Number>(sGenomeCount));
+}
+
 NAN_GETTER(ThreadCountGetter) {
   NanScope();
 
@@ -28,6 +36,7 @@ void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
 #endif
   exports->SetAccessor(NanNew<String>("version"), VersionGetter);
   exports->SetAccessor(NanNew<String>("threadCount"), ThreadCountGetter);
+  exports->SetAccessor(NanNew<String>("genomeCount"), GenomeCountGetter);
 
   Genome::Export(exports);
 }

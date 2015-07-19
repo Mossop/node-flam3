@@ -13,4 +13,10 @@ describe("flam3", function() {
       should(flam3.version).endWith("v3.1.1");
     });
   });
+
+  describe("#genomeCount", function () {
+    it("should be 0", function () {
+      should(flam3.genomeCount).equal(0);
+    });
+  });
 });

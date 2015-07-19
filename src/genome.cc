@@ -1,6 +1,8 @@
 #include "nativefields.h"
 #include "genome.h"
 
+int32_t sGenomeCount = 0;
+
 Persistent<Function> Genome::constructor;
 
 Genome::Genome(Local<Object> jsObj) {
@@ -18,9 +20,11 @@ Genome::Genome(flam3_genome* g) {
 Genome::~Genome() {
   clear_cp(genome, flam3_defaults_on);
   flam3_free(genome);
+  sGenomeCount--;
 }
 
 void Genome::Init(flam3_genome* g, Local<Object> jsObj) {
+  sGenomeCount++;
   genome = g;
   Wrap(jsObj);
 
