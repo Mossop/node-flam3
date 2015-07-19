@@ -8,9 +8,6 @@ function checkGenome(createGenome) {
     should(g.gamma).equal(4);
     should(g.gamma = 6).equal(6);
     should(g.gamma).equal(6);
-
-    g = null;
-    global.gc();
   });
 }
 
@@ -27,18 +24,22 @@ describe("genome", function() {
     });
   });
 
-  describe("gc", function() {
-    it("increases and decreases correctly", function() {
-      var count = flam3.genomeCount;
-      var g = new flam3.Genome();
-      should(flam3.genomeCount).equal(count + 1);
+  if ("gc" in global) {
+    describe("gc", function() {
+      it("increases and decreases correctly", function() {
+        global.gc();
 
-      global.gc();
-      should(flam3.genomeCount).equal(count + 1);
+        var count = flam3.genomeCount;
+        var g = new flam3.Genome();
+        should(flam3.genomeCount).equal(count + 1);
 
-      g = null;
-      global.gc();
-      should(flam3.genomeCount).equal(count);
+        global.gc();
+        should(flam3.genomeCount).equal(count + 1);
+
+        g = null;
+        global.gc();
+        should(flam3.genomeCount).equal(count);
+      });
     });
-  });
+  }
 });
