@@ -20,6 +20,14 @@ describe("genome", () => {
     checkGenome(() => flam3.Genome());
   });
 
+  describe("random", () => {
+    it("appears to work", () => {
+      let genome = flam3.Genome.createRandom();
+      should(genome.height).equal(100);
+      should(genome.width).equal(100);
+    });
+  });
+
   if ("gc" in global) {
     describe("gc", () => {
       it("increases and decreases correctly", () => {

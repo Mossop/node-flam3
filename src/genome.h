@@ -22,6 +22,8 @@ class Genome : public node::ObjectWrap {
     void Init(flam3_genome* g, Local<Object> jsObj);
 
     static NAN_METHOD(New);
+    static NAN_METHOD(Random);
+
     static Persistent<v8::Function> constructor;
 
     flam3_genome* genome;

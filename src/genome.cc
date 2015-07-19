@@ -14,7 +14,10 @@ Genome::Genome(Local<Object> jsObj) {
 }
 
 Genome::Genome(flam3_genome* g) {
-  Init(g, NanNew<Object>());
+  Local<ObjectTemplate> tpl = NanNew<ObjectTemplate>();
+  tpl->SetInternalFieldCount(1);
+
+  Init(g, tpl->NewInstance());
 }
 
 Genome::~Genome() {
@@ -82,6 +85,7 @@ void Genome::Export(Handle<Object> exports) {
   Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
   tpl->SetClassName(NanNew<String>("Genome"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  tpl->Set(NanNew<String>("createRandom"), NanNew<FunctionTemplate>(Genome::Random)->GetFunction());
 
   NanAssignPersistent(constructor, tpl->GetFunction());
   exports->Set(NanNew<String>("Genome"), tpl->GetFunction());
@@ -99,4 +103,17 @@ NAN_METHOD(Genome::New) {
     Local<Value> argv[0];
     NanReturnValue(NanNew<Function>(constructor)->NewInstance(0, argv));
   }
+}
+
+NAN_METHOD(Genome::Random) {
+  NanScope();
+
+  flam3_genome* genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
+  memset(genome, 0, sizeof(flam3_genome));
+
+  int variations[] = { flam3_variation_random };
+  flam3_random(genome, variations, 1, 0, 0);
+
+  Genome* obj = new Genome(genome);
+  NanReturnValue(NanObjectWrapHandle(obj));
 }
