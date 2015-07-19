@@ -1,9 +1,9 @@
-var should = require("should");
-var flam3 = require("../lib/index.js");
+const should = require("should");
+const flam3 = require("../lib/index.js");
 
 function checkGenome(createGenome) {
-  it("can access gamma property", function() {
-    var g = createGenome();
+  it("can access gamma property", () => {
+    let g = createGenome();
 
     should(g.gamma).equal(4);
     should(g.gamma = 6).equal(6);
@@ -11,26 +11,22 @@ function checkGenome(createGenome) {
   });
 }
 
-describe("genome", function() {
-  describe("new", function () {
-    checkGenome(function() {
-      return new flam3.Genome();
-    });
+describe("genome", () => {
+  describe("new", () => {
+    checkGenome(() => new flam3.Genome());
   });
 
-  describe("function", function () {
-    checkGenome(function() {
-      return flam3.Genome();
-    });
+  describe("function", () => {
+    checkGenome(() => flam3.Genome());
   });
 
   if ("gc" in global) {
-    describe("gc", function() {
-      it("increases and decreases correctly", function() {
+    describe("gc", () => {
+      it("increases and decreases correctly", () => {
         global.gc();
 
-        var count = flam3.genomeCount;
-        var g = new flam3.Genome();
+        let count = flam3.genomeCount;
+        let g = new flam3.Genome();
         should(flam3.genomeCount).equal(count + 1);
 
         global.gc();
