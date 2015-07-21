@@ -40,6 +40,41 @@ describe("genome", () => {
     checkGenome(() => flam3.Genome.createRandom());
   });
 
+  describe("loadFromXML", () => {
+    it("throws on invalid arguments", () => {
+      should.throws(() => flam3.Genome.fromXMLString(), TypeError, "Wrong number of arguments");
+      should.throws(() => flam3.Genome.fromXMLString("foo"), TypeError, "Wrong number of arguments");
+    });
+
+    it("ignores invalid XML", () => {
+      let parsed = flam3.Genome.fromXMLString("foobar", "stdin");
+      should(parsed).is.null();
+    });
+
+    it("ignores missing flames", () => {
+      let parsed = flam3.Genome.fromXMLString("<foobar/>", "stdin");
+      should(parsed).be.null();
+    });
+
+    it("loads a genome correctly", () => {
+      let original = new flam3.Genome();
+      original.height = 240;
+      original.width = 320;
+      original.gamma = 3;
+
+      let results = flam3.Genome.fromXMLString(original.toXMLString(), "stdin");
+      should(results).be.Array();
+      should(results).have.length(1);
+
+      let parsed = results[0];
+      should(parsed.height).equal(240);
+      should(parsed.width).equal(320);
+      should(parsed.gamma).equal(3);
+    });
+
+    checkGenome(() => flam3.Genome.fromXMLString(flam3.Genome.createRandom().toXMLString(), "stdin")[0]);
+  });
+
   if ("gc" in global) {
     describe("gc", () => {
       it("increases and decreases correctly", () => {

@@ -89,6 +89,8 @@ void Genome::Export(Handle<Object> exports) {
   tpl->SetClassName(NanNew<String>("Genome"));
   tpl->Set(NanNew<String>("createRandom"),
     NanNew<FunctionTemplate>(Genome::Random)->GetFunction());
+  tpl->Set(NanNew<String>("fromXMLString"),
+    NanNew<FunctionTemplate>(Genome::Parse)->GetFunction());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   NanAssignPersistent(constructor, tpl->GetFunction());
@@ -120,6 +122,32 @@ NAN_METHOD(Genome::Random) {
 
   Genome* obj = new Genome(genome);
   NanReturnValue(NanObjectWrapHandle(obj));
+}
+
+NAN_METHOD(Genome::Parse) {
+  NanScope();
+
+  if (args.Length() < 2) {
+    NanThrowTypeError("Wrong number of arguments");
+    return;
+  }
+
+  NanUtf8String xmlstr(args[0]);
+  NanUtf8String xmlfilename(args[1]);
+  int count;
+  flam3_genome* genomes = flam3_parse_xml2(*xmlstr, *xmlfilename, flam3_defaults_on, &count);
+
+  if (!genomes) {
+    NanReturnNull();
+  }
+
+  Local<Array> results = NanNew<Array>(count);
+  for (int i = 0; i < count; i++) {
+    results->Set(i, NanObjectWrapHandle(new Genome(genomes)));
+    genomes++;
+  }
+
+  NanReturnValue(results);
 }
 
 NAN_METHOD(Genome::ToXMLString) {

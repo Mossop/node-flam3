@@ -23,6 +23,7 @@ class Genome : public node::ObjectWrap {
 
     static NAN_METHOD(New);
     static NAN_METHOD(Random);
+    static NAN_METHOD(Parse);
 
     static NAN_METHOD(ToXMLString);
 
