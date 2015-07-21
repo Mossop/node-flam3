@@ -129,7 +129,7 @@ NAN_METHOD(Genome::Parse) {
 
   if (args.Length() < 2) {
     NanThrowTypeError("Wrong number of arguments");
-    return;
+    NanReturnUndefined();
   }
 
   NanUtf8String xmlstr(args[0]);
