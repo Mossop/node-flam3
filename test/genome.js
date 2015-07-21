@@ -9,6 +9,16 @@ function checkGenome(createGenome) {
     should(g.gamma = 6).equal(6);
     should(g.gamma).equal(6);
   });
+
+  it("toXMLString works", () => {
+    let g = createGenome();
+    let str = g.toXMLString();
+
+    should(str).startWith("<flame ");
+    should(str).endWith("</flame>\n");
+
+    should(str).match(RegExp('size="' + g.height + ' ' + g.width + '"'));
+  });
 }
 
 describe("genome", () => {
@@ -26,6 +36,8 @@ describe("genome", () => {
       should(genome.height).equal(100);
       should(genome.width).equal(100);
     });
+
+    checkGenome(() => flam3.Genome.createRandom());
   });
 
   if ("gc" in global) {

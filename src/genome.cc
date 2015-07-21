@@ -76,6 +76,9 @@ void Genome::Init(flam3_genome* g, Local<Object> jsObj) {
   DEFINE_STRUCT_DBL_PROPERTY(genome, temporal_filter_width)
   DEFINE_STRUCT_DBL_PROPERTY(genome, temporal_filter_exp)
   DEFINE_STRUCT_INT_PROPERTY(genome, palette_mode)
+
+  jsObj->Set(NanNew<String>("toXMLString"),
+    NanNew<FunctionTemplate>(ToXMLString)->GetFunction());
 }
 
 void Genome::Export(Handle<Object> exports) {
@@ -84,8 +87,9 @@ void Genome::Export(Handle<Object> exports) {
   // Prepare constructor template
   Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
   tpl->SetClassName(NanNew<String>("Genome"));
+  tpl->Set(NanNew<String>("createRandom"),
+    NanNew<FunctionTemplate>(Genome::Random)->GetFunction());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tpl->Set(NanNew<String>("createRandom"), NanNew<FunctionTemplate>(Genome::Random)->GetFunction());
 
   NanAssignPersistent(constructor, tpl->GetFunction());
   exports->Set(NanNew<String>("Genome"), tpl->GetFunction());
@@ -116,4 +120,15 @@ NAN_METHOD(Genome::Random) {
 
   Genome* obj = new Genome(genome);
   NanReturnValue(NanObjectWrapHandle(obj));
+}
+
+NAN_METHOD(Genome::ToXMLString) {
+  NanScope();
+
+  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
+  char* str = flam3_print_to_string(obj->genome);
+  Local<String> xml = NanNew<String>(str);
+  flam3_free(str);
+
+  NanReturnValue(xml);
 }

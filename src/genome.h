@@ -24,6 +24,8 @@ class Genome : public node::ObjectWrap {
     static NAN_METHOD(New);
     static NAN_METHOD(Random);
 
+    static NAN_METHOD(ToXMLString);
+
     static Persistent<v8::Function> constructor;
 
     flam3_genome* genome;
