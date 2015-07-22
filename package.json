@@ -15,7 +15,9 @@
   "devDependencies": {
     "babel": "5",
     "mocha": "2",
-    "should": "7"
+    "should": "7",
+    "pngjs": "0",
+    "png-diff": "0"
   },
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha --expose-gc --compilers js:babel/register",

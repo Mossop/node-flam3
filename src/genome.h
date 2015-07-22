@@ -27,6 +27,7 @@ class Genome : public node::ObjectWrap {
 
     static NAN_GETTER(BuildPalette);
     static NAN_METHOD(ToXMLString);
+    static NAN_METHOD(Render);
 
     static Persistent<Function> constructor;
 

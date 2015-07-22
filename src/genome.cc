@@ -1,5 +1,6 @@
 #include "nativefields.h"
 #include "genome.h"
+#include <isaac.h>
 
 int32_t sGenomeCount = 0;
 
@@ -100,6 +101,8 @@ void Genome::Init(Handle<Object> jsObj) {
 
   jsObj->Set(NanNew<String>("toXMLString"),
     NanNew<FunctionTemplate>(ToXMLString)->GetFunction());
+  jsObj->Set(NanNew<String>("render"),
+    NanNew<FunctionTemplate>(Render)->GetFunction());
   jsObj->SetAccessor(NanNew<String>("palette"), BuildPalette);
 }
 
@@ -198,4 +201,102 @@ NAN_METHOD(Genome::ToXMLString) {
   flam3_free(str);
 
   NanReturnValue(xml);
+}
+
+class Renderer : public NanAsyncWorker {
+  public:
+    Renderer(NanCallback *callback, flam3_genome* genome, Handle<Object> options) : NanAsyncWorker(callback) {
+      this->genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
+      memset(this->genome, 0, sizeof(flam3_genome));
+      clear_cp(this->genome, flam3_defaults_on);
+      flam3_copy(this->genome, genome);
+
+      /* Force ntemporal_samples to 1 for -render */
+      genome->ntemporal_samples = 1;
+
+      flam3_init_frame(&frame);
+
+      Local<Value> seedVal = options->Get(NanNew<String>("seed"));
+      if (!seedVal->IsUndefined()) {
+        NanUtf8String seedStr(seedVal);
+        strncpy((char *)frame.rc.randrsl, *seedStr, RANDSIZ * sizeof(ub4));
+        irandinit(&frame.rc, 1);
+      }
+
+      frame.genomes = genome;
+      frame.ngenomes = 1;
+      frame.verbose = 0;
+      frame.bits = 33;
+      frame.time = 0.0;
+      frame.pixel_aspect_ratio = 1.0;
+      frame.progress = 0;
+      frame.nthreads = flam3_count_nthreads();
+      frame.earlyclip = 0;
+      frame.sub_batch_size = 10000;
+      frame.bytes_per_channel = 1;
+    }
+
+    ~Renderer() {
+      clear_cp(genome, flam3_defaults_on);
+      flam3_free(genome);
+    }
+
+    void Execute () {
+      int channels = 4;
+
+      image_size = channels * genome->width *
+                   genome->height * frame.bytes_per_channel;
+      image_data = malloc(image_size);
+
+      stat_struct stats;
+
+      if (flam3_render(&frame, image_data, flam3_field_both, channels, 0, &stats)) {
+        free(image_data);
+
+        SetErrorMessage("Error rendering image");
+      }
+    }
+
+    void HandleOKCallback () {
+      NanScope();
+
+      Local<Value> argv[] = {
+        NanNull(),
+        NanBufferUse(reinterpret_cast<char*>(image_data), image_size)
+      };
+      callback->Call(2, argv);
+    }
+
+  private:
+    flam3_genome* genome;
+    flam3_frame frame;
+    size_t image_size;
+    void* image_data;
+};
+
+NAN_METHOD(Genome::Render) {
+  NanScope();
+
+  if (args.Length() < 2) {
+    NanThrowTypeError("Wrong number of arguments");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsObject()) {
+    NanThrowTypeError("Argument 0 must be an object");
+    NanReturnUndefined();
+  }
+
+  if (!args[1]->IsFunction()) {
+    NanThrowTypeError("Argument 1 be a function");
+    NanReturnUndefined();
+  }
+
+  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
+
+  Local<Object> options = args[0]->ToObject();
+  NanCallback *callback = new NanCallback(args[1].As<Function>());
+
+  NanAsyncQueueWorker(new Renderer(callback, obj->genome, options));
+  NanReturnUndefined();
 }
