@@ -20,7 +20,7 @@ function checkGenome(createGenome) {
     should(str).match(RegExp('size="' + g.height + ' ' + g.width + '"'));
   });
 
-  /*it("palette should look sane", () => {
+  it("palette should look sane", () => {
     let g = createGenome();
 
     should(g.palette).have.length(256);
@@ -33,7 +33,7 @@ function checkGenome(createGenome) {
     let sum = g.palette.reduce((total, entry) => total + entry.red + entry.green + entry.blue + entry.alpha, 0);
 
     should(sum).be.lessThan(256 * 4);
-  });*/
+  });
 }
 
 describe("genome", () => {
@@ -94,6 +94,7 @@ describe("genome", () => {
     describe("gc", () => {
       it("increases and decreases correctly", () => {
         global.gc();
+        global.gc();
 
         let count = flam3.genomeCount;
         let g = new flam3.Genome();
@@ -109,6 +110,7 @@ describe("genome", () => {
 
       it("palette references hold the genome alive", () => {
         global.gc();
+        global.gc();
 
         let count = flam3.genomeCount;
         let g = flam3.Genome.createRandom();
@@ -116,6 +118,7 @@ describe("genome", () => {
 
         let palette = g.palette;
         g = null;
+        global.gc();
         global.gc();
         should(flam3.genomeCount).equal(count + 1);
 

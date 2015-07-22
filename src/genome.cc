@@ -59,7 +59,6 @@ void Genome::Init(flam3_genome* genome, Handle<Object> jsObj) {
   DEFINE_STRUCT_INT_PROPERTY(genome, genome_index)
   // char parent_fname[flam3_parent_fn_len];   /* base filename where parent was located */
   DEFINE_STRUCT_INT_PROPERTY(genome, symmetry)
-  // flam3_palette palette;
   DEFINE_STRUCT_INT_PROPERTY(genome, palette_index)
   DEFINE_STRUCT_DBL_PROPERTY(genome, brightness)
   DEFINE_STRUCT_DBL_PROPERTY(genome, contrast)
