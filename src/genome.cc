@@ -18,7 +18,7 @@ PaletteEntry::PaletteEntry(Genome* genome, flam3_palette_entry* entry) {
 }
 
 PaletteEntry::~PaletteEntry() {
-  genomeObj.Reset();
+  NanDisposePersistent(genomeObj);
 }
 
 Persistent<Function> Genome::constructor;
