@@ -3,9 +3,27 @@
 
 int32_t sGenomeCount = 0;
 
+PaletteEntry::PaletteEntry(Genome* genome, flam3_palette_entry* entry) {
+  this->entry = entry;
+  NanAssignPersistent(genomeObj, NanObjectWrapHandle(genome));
+
+  Local<ObjectTemplate> tpl = NanNew<ObjectTemplate>();
+  tpl->SetInternalFieldCount(1);
+  Wrap(tpl->NewInstance());
+
+  DEFINE_DBL_PROPERTY(red, entry->color[0])
+  DEFINE_DBL_PROPERTY(green, entry->color[1])
+  DEFINE_DBL_PROPERTY(blue, entry->color[2])
+  DEFINE_DBL_PROPERTY(alpha, entry->color[3])
+}
+
+PaletteEntry::~PaletteEntry() {
+  genomeObj.Reset();
+}
+
 Persistent<Function> Genome::constructor;
 
-Genome::Genome(Local<Object> jsObj) {
+Genome::Genome(Handle<Object> jsObj) {
   flam3_genome* g = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
   memset(g, 0, sizeof(flam3_genome));
   clear_cp(g, flam3_defaults_on);
@@ -13,11 +31,11 @@ Genome::Genome(Local<Object> jsObj) {
   Init(g, jsObj);
 }
 
-Genome::Genome(flam3_genome* g) {
+Genome::Genome(flam3_genome* genome) {
   Local<ObjectTemplate> tpl = NanNew<ObjectTemplate>();
   tpl->SetInternalFieldCount(1);
 
-  Init(g, tpl->NewInstance());
+  Init(genome, tpl->NewInstance());
 }
 
 Genome::~Genome() {
@@ -26,9 +44,9 @@ Genome::~Genome() {
   sGenomeCount--;
 }
 
-void Genome::Init(flam3_genome* g, Local<Object> jsObj) {
+void Genome::Init(flam3_genome* genome, Handle<Object> jsObj) {
   sGenomeCount++;
-  genome = g;
+  this->genome = genome;
   Wrap(jsObj);
 
   // char flame_name[flam3_name_len+1]; /* 64 chars plus a null */
@@ -79,6 +97,7 @@ void Genome::Init(flam3_genome* g, Local<Object> jsObj) {
 
   jsObj->Set(NanNew<String>("toXMLString"),
     NanNew<FunctionTemplate>(ToXMLString)->GetFunction());
+  jsObj->SetAccessor(NanNew<String>("palette"), BuildPalette);
 }
 
 void Genome::Export(Handle<Object> exports) {
@@ -148,6 +167,20 @@ NAN_METHOD(Genome::Parse) {
   }
 
   NanReturnValue(results);
+}
+
+NAN_GETTER(Genome::BuildPalette) {
+  NanScope();
+
+  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
+
+  Local<Array> palette = NanNew<Array>(0);
+  for (int i = 0; i < 256; i++) {
+    flam3_palette_entry *entry = &(obj->genome->palette[i]);
+    palette->Set(i, NanObjectWrapHandle(new PaletteEntry(obj, entry)));
+  }
+
+  NanReturnValue(palette);
 }
 
 NAN_METHOD(Genome::ToXMLString) {

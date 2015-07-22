@@ -1,5 +1,6 @@
 #include <node.h>
 #include <nan.h>
+#include <dlfcn.h>
 
 extern "C" {
 #include <flam3.h>
@@ -34,6 +35,20 @@ void Init(Handle<Object> exports, Handle<Value> module) {
 #else
 void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
 #endif
+  // Find the library path and set the palettes environment variable
+  Dl_info info;
+  if (dladdr(&sGenomeCount, &info)) {
+    int len = strlen(info.dli_fname);
+    while (info.dli_fname[len - 1] != '/') {
+      len--;
+    }
+
+    char* path = reinterpret_cast<char*>(malloc(len + 18 + 1));
+    strncpy(path, info.dli_fname, len);
+    strcpy(path + len, "flam3-palettes.xml");
+    setenv("flam3_palettes", path, 1);
+  }
+
   exports->SetAccessor(NanNew<String>("version"), VersionGetter);
   exports->SetAccessor(NanNew<String>("threadCount"), ThreadCountGetter);
   exports->SetAccessor(NanNew<String>("genomeCount"), GenomeCountGetter);

@@ -49,7 +49,13 @@
       "direct_dependent_settings": {
         "include_dirs": [ "<(flam3_dir)",
                           "../node_modules/libxmljs/vendor/libxml/include" ],
-      }
+      },
+      "copies": [
+        {
+          "destination": "<(PRODUCT_DIR)",
+          "files": [ "<(SHARED_INTERMEDIATE_DIR)/flam3/flam3-palettes.xml" ]
+        }
+      ],
     }
   ]
 }

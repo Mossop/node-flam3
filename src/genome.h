@@ -11,23 +11,35 @@ using namespace node;
 
 class Genome : public node::ObjectWrap {
   public:
+    Genome(Handle<Object> jsObj);
+    Genome(flam3_genome* genome);
+
     static void Export(Handle<v8::Object> exports);
 
   private:
-    Genome(Local<Object> jsObj);
-    Genome(flam3_genome* g);
-    Genome(flam3_genome* g, Local<Object> jsObj);
     ~Genome();
 
-    void Init(flam3_genome* g, Local<Object> jsObj);
+    void Init(flam3_genome* genome, Handle<Object> jsObj);
 
     static NAN_METHOD(New);
     static NAN_METHOD(Random);
     static NAN_METHOD(Parse);
 
+    static NAN_GETTER(BuildPalette);
     static NAN_METHOD(ToXMLString);
 
-    static Persistent<v8::Function> constructor;
+    static Persistent<Function> constructor;
 
     flam3_genome* genome;
+};
+
+class PaletteEntry : public node::ObjectWrap {
+  public:
+    PaletteEntry(Genome* genome, flam3_palette_entry* entry);
+
+  private:
+    ~PaletteEntry();
+
+    Persistent<Object> genomeObj;
+    flam3_palette_entry* entry;
 };

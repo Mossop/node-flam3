@@ -19,6 +19,21 @@ function checkGenome(createGenome) {
 
     should(str).match(RegExp('size="' + g.height + ' ' + g.width + '"'));
   });
+
+  /*it("palette should look sane", () => {
+    let g = createGenome();
+
+    should(g.palette).have.length(256);
+    should(g.palette[0]).have.properties([ "red", "green", "blue", "alpha" ]);
+  });
+
+  it("palette should not be all white", () => {
+    let g = createGenome();
+
+    let sum = g.palette.reduce((total, entry) => total + entry.red + entry.green + entry.blue + entry.alpha, 0);
+
+    should(sum).be.lessThan(256 * 4);
+  });*/
 }
 
 describe("genome", () => {
@@ -88,6 +103,30 @@ describe("genome", () => {
         should(flam3.genomeCount).equal(count + 1);
 
         g = null;
+        global.gc();
+        should(flam3.genomeCount).equal(count);
+      });
+
+      it("palette references hold the genome alive", () => {
+        global.gc();
+
+        let count = flam3.genomeCount;
+        let g = flam3.Genome.createRandom();
+        should(flam3.genomeCount).equal(count + 1);
+
+        let palette = g.palette;
+        g = null;
+        global.gc();
+        should(flam3.genomeCount).equal(count + 1);
+
+        let entry = palette[0];
+        palette = null;
+        global.gc();
+        global.gc();
+        should(flam3.genomeCount).equal(count + 1);
+
+        entry = null;
+        global.gc();
         global.gc();
         should(flam3.genomeCount).equal(count);
       });
