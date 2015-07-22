@@ -1,24 +1,40 @@
 {
   "variables": {
-    "flam3-version": "v3.1.1",
-    "flam3-archive": "https://github.com/scottdraves/flam3/archive/<(flam3-version).tar.gz"
+    "flam3_version": "v3.1.1",
+    "flam3_archive": "https://github.com/scottdraves/flam3/archive/<(flam3_version).tar.gz",
+    "flam3_dir": "<(SHARED_INTERMEDIATE_DIR)/flam3",
+    "flam3_sources": [
+      "<(flam3_dir)/flam3.c",
+      "<(flam3_dir)/filters.c",
+      "<(flam3_dir)/parser.c",
+      "<(flam3_dir)/variations.c",
+      "<(flam3_dir)/interpolation.c",
+      "<(flam3_dir)/palettes.c",
+      "<(flam3_dir)/jpeg.c",
+      "<(flam3_dir)/png.c",
+      "<(flam3_dir)/isaac.c"
+    ]
   },
   "targets": [
     {
       "target_name": "libflam3",
       "type": "static_library",
-      "dependencies": [ "action_before_build",
-                        "../node_modules/libxmljs/vendor/libxml/libxml.gyp:libxml" ],
-      "sources": [ "<(SHARED_INTERMEDIATE_DIR)/flam3/flam3.c",
-                   "<(SHARED_INTERMEDIATE_DIR)/flam3/filters.c",
-                   "<(SHARED_INTERMEDIATE_DIR)/flam3/parser.c",
-                   "<(SHARED_INTERMEDIATE_DIR)/flam3/variations.c",
-                   "<(SHARED_INTERMEDIATE_DIR)/flam3/interpolation.c",
-                   "<(SHARED_INTERMEDIATE_DIR)/flam3/palettes.c",
-                   "<(SHARED_INTERMEDIATE_DIR)/flam3/jpeg.c",
-                   "<(SHARED_INTERMEDIATE_DIR)/flam3/png.c",
-                   "<(SHARED_INTERMEDIATE_DIR)/flam3/isaac.c" ],
-      "defines": [ "GIT_REV=\"<(flam3-version)\"",
+      "dependencies": [ "../node_modules/libxmljs/vendor/libxml/libxml.gyp:libxml" ],
+      "actions": [
+        {
+          "action_name": 'download_flam3',
+          "inputs": [],
+          "outputs": [ "<(INTERMEDIATE_DIR)/flam3.tar.gz" ],
+          "action": ["curl", "-L", "-o", "<(INTERMEDIATE_DIR)/flam3.tar.gz", "<(flam3_archive)" ]
+        }, {
+          "action_name": 'extract_flam3',
+          "inputs": [ "<(INTERMEDIATE_DIR)/flam3.tar.gz" ],
+          "outputs": [ "<@(flam3_sources)" ],
+          "action": ["tar", "-xmv", "--strip-components", "1", "-C", "<(flam3_dir)", "-f", "<(INTERMEDIATE_DIR)/flam3.tar.gz" ]
+        }
+      ],
+      "sources": [ "<@(flam3_sources)" ],
+      "defines": [ "GIT_REV=\"<(flam3_version)\"",
                    "PACKAGE_DATA_DIR=\"\"" ],
       "cflags": [ "-g",
                   "-O3",
@@ -31,32 +47,9 @@
                           "-ffast-math" ],
       },
       "direct_dependent_settings": {
-        "include_dirs": [ "<(SHARED_INTERMEDIATE_DIR)/flam3",
+        "include_dirs": [ "<(flam3_dir)",
                           "../node_modules/libxmljs/vendor/libxml/include" ],
       }
-    }, {
-      "target_name": "action_before_build",
-      "type": "none",
-      "hard_dependency": 1,
-      "actions": [
-        {
-          "action_name": 'download_flam3',
-          "inputs": [],
-          "outputs": [
-            "<(SHARED_INTERMEDIATE_DIR)/flam3.zip"
-          ],
-          "action": ["curl", "-L", "-o", "<(SHARED_INTERMEDIATE_DIR)/flam3.tar.gz", "<(flam3-archive)" ]
-        }, {
-          "action_name": 'extract_flam3',
-          "inputs": [
-            "<(SHARED_INTERMEDIATE_DIR)/flam3.tar.gz"
-          ],
-          "outputs": [
-            "<(SHARED_INTERMEDIATE_DIR)/flam3/flam3.c"
-          ],
-          "action": ["tar", "-xv", "--strip-components", "1", "-C", "<(SHARED_INTERMEDIATE_DIR)/flam3", "-f", "<(SHARED_INTERMEDIATE_DIR)/flam3.tar.gz" ]
-        }
-      ]
     }
   ]
 }
