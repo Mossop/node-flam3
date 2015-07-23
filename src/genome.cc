@@ -136,16 +136,105 @@ NAN_METHOD(Genome::New) {
   }
 }
 
+void init_genome(flam3_genome* genome) {
+  genome->time = 0.0;
+  genome->interpolation = flam3_interpolation_linear;
+  genome->palette_interpolation = flam3_palette_interpolation_hsv;
+  genome->hsv_rgb_palette_blend = 0.0;
+  genome->background[0] = 0.0;
+  genome->background[1] = 0.0;
+  genome->background[2] = 0.0;
+  genome->center[0] = 0.0;
+  genome->center[1] = 0.0;
+  genome->rotate = 0.0;
+  genome->pixels_per_unit = 64;
+  genome->width = 128;
+  genome->height = 128;
+  genome->spatial_oversample = 1;
+  genome->spatial_filter_radius = 0.5;
+  genome->spatial_filter_select = 0;
+  genome->highlight_power= 1.0;
+  genome->zoom = 0.0;
+  genome->sample_density = 1;
+  genome->nbatches = 1;
+  genome->ntemporal_samples = 1;
+  genome->estimator = 0.0;
+  genome->estimator_minimum = 0.0;
+  genome->estimator_curve = 0.6;
+}
+
 NAN_METHOD(Genome::Random) {
   NanScope();
 
-  flam3_genome* genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
-  memset(genome, 0, sizeof(flam3_genome));
+  Local<Object> options = NanNew<Object>();
+  if (args.Length() >= 1) {
+    if (args[0]->IsObject()) {
+      options = args[0]->ToObject();
+    }
+    else if (!args[0]->IsNull()) {
+      NanThrowTypeError("Argument 0 must be an object or null");
+      NanReturnUndefined();
+    }
+  }
 
-  int variations[] = { flam3_variation_random };
-  flam3_random(genome, variations, 1, 0, 0);
+  flam3_genome genome;
+  memset(&genome, 0, sizeof(flam3_genome));
+  init_genome(&genome);
 
-  Genome* obj = new Genome(genome);
+  flam3_frame frame;
+  flam3_init_frame(&frame);
+
+  int novars[] = {
+    VAR_NOISE,
+    VAR_BLUR,
+    VAR_GAUSSIAN_BLUR,
+    VAR_RADIAL_BLUR,
+    VAR_NGON,
+    VAR_SQUARE,
+    VAR_RAYS,
+    VAR_CROSS,
+    VAR_PRE_BLUR,
+    VAR_SEPARATION,
+    VAR_SPLIT,
+    VAR_SPLITS
+  };
+
+  int num_vars = 0;
+  int num_novars = sizeof(novars) / sizeof(int);
+  int variations[flam3_nvariations - num_novars];
+
+  for (int i = 0; i < flam3_nvariations; i++) {
+    variations[num_vars++] = i;
+
+    for (int j = 0; j < num_novars; j++) {
+      if (novars[j] == i) {
+        num_vars--;
+        break;
+      }
+    }
+
+    if (num_vars == (flam3_nvariations - num_novars))
+      break;
+  }
+
+  int syms[] = {
+    -8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8
+  };
+  int symmetry = syms[random() % 16];
+  int spec_xforms = 0;
+  flam3_random(&genome, variations, num_vars, symmetry, spec_xforms);
+
+  double bmin[2], bmax[2];
+  flam3_estimate_bounding_box(&genome, 0.01, 100000, bmin, bmax, &frame.rc);
+  genome.center[0] = (bmin[0] + bmax[0]) / 2.0;
+  genome.center[1] = (bmin[1] + bmax[1]) / 2.0;
+  genome.rot_center[0] = genome.center[0];
+  genome.rot_center[1] = genome.center[1];
+  genome.pixels_per_unit = genome.width / (bmax[0] - bmin[0]);
+
+  Genome* obj = new Genome(&genome);
+  clear_cp(&genome, flam3_defaults_on);
+
   NanReturnValue(NanObjectWrapHandle(obj));
 }
 
@@ -282,8 +371,12 @@ NAN_METHOD(Genome::Render) {
     NanReturnUndefined();
   }
 
-  if (!args[1]->IsObject()) {
-    NanThrowTypeError("Argument 0 must be an object");
+  Local<Object> options = NanNew<Object>();
+  if (args[0]->IsObject()) {
+    options = args[0]->ToObject();
+  }
+  else if (!args[0]->IsNull()) {
+    NanThrowTypeError("Argument 0 must be an object or null");
     NanReturnUndefined();
   }
 
@@ -294,7 +387,6 @@ NAN_METHOD(Genome::Render) {
 
   Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
 
-  Local<Object> options = args[0]->ToObject();
   NanCallback *callback = new NanCallback(args[1].As<Function>());
 
   NanAsyncQueueWorker(new Renderer(callback, obj->genome, options));

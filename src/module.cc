@@ -49,6 +49,8 @@ void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
     setenv("flam3_palettes", path, 1);
   }
 
+  flam3_srandom();
+
   exports->SetAccessor(NanNew<String>("version"), VersionGetter);
   exports->SetAccessor(NanNew<String>("threadCount"), ThreadCountGetter);
   exports->SetAccessor(NanNew<String>("genomeCount"), GenomeCountGetter);
