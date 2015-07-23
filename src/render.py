@@ -8,6 +8,7 @@ if (len(sys.argv) != 4):
 def render(flame, output):
     env = {
         "isaac_seed": "testseed",
+        "seed": "testseed",
         "in": flame,
         "flam3_palettes": os.path.join(sys.argv[1], "flam3-palettes.xml"),
         "out": output

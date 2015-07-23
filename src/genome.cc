@@ -310,6 +310,7 @@ class Renderer : public NanAsyncWorker {
         NanUtf8String seedStr(seedVal);
         strncpy((char *)frame.rc.randrsl, *seedStr, RANDSIZ * sizeof(ub4));
         irandinit(&frame.rc, 1);
+        srand(atoi(*seedStr));
       }
 
       frame.genomes = genome;
