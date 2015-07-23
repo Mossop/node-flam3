@@ -24,18 +24,23 @@ PaletteEntry::~PaletteEntry() {
 Persistent<Function> Genome::constructor;
 
 Genome::Genome(Handle<Object> jsObj) {
-  flam3_genome* g = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
-  memset(g, 0, sizeof(flam3_genome));
-  clear_cp(g, flam3_defaults_on);
+  genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
+  memset(genome, 0, sizeof(flam3_genome));
+  clear_cp(genome, flam3_defaults_on);
 
-  Init(g, jsObj);
+  Init(jsObj);
 }
 
 Genome::Genome(flam3_genome* genome) {
+  this->genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
+  memset(this->genome, 0, sizeof(flam3_genome));
+  clear_cp(this->genome, flam3_defaults_on);
+  flam3_copy(this->genome, genome);
+
   Local<ObjectTemplate> tpl = NanNew<ObjectTemplate>();
   tpl->SetInternalFieldCount(1);
 
-  Init(genome, tpl->NewInstance());
+  Init(tpl->NewInstance());
 }
 
 Genome::~Genome() {
@@ -44,9 +49,8 @@ Genome::~Genome() {
   sGenomeCount--;
 }
 
-void Genome::Init(flam3_genome* genome, Handle<Object> jsObj) {
+void Genome::Init(Handle<Object> jsObj) {
   sGenomeCount++;
-  this->genome = genome;
   Wrap(jsObj);
 
   // char flame_name[flam3_name_len+1]; /* 64 chars plus a null */
@@ -161,10 +165,13 @@ NAN_METHOD(Genome::Parse) {
 
   Local<Array> results = NanNew<Array>(count);
   for (int i = 0; i < count; i++) {
-    results->Set(i, NanObjectWrapHandle(new Genome(genomes)));
-    genomes++;
+    flam3_genome* genome = genomes + i;
+    results->Set(i, NanObjectWrapHandle(new Genome(genome)));
+    xmlFreeDoc(genome->edits);
+    clear_cp(genome, 0);
   }
 
+  flam3_free(genomes);
   NanReturnValue(results);
 }
 

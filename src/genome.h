@@ -19,7 +19,7 @@ class Genome : public node::ObjectWrap {
   private:
     ~Genome();
 
-    void Init(flam3_genome* genome, Handle<Object> jsObj);
+    void Init(Handle<Object> jsObj);
 
     static NAN_METHOD(New);
     static NAN_METHOD(Random);
