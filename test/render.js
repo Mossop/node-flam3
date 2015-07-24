@@ -40,9 +40,9 @@ function testImage(root) {
         }
 
         pixel_count = 100 * pixel_count / (png.height * png.width);
-        should(pixel_count).equal(0);
+        should(pixel_count).be.lessThan(0.1);
         total_difference = total_difference / (png.height * png.width);
-        should(total_difference).equal(0);
+        should(total_difference).be.lessThan(1);
 
         done();
       });

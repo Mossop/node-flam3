@@ -1,17 +1,14 @@
 const should = require("should");
 const flam3 = require("../lib/index.js");
 
-function checkGenome(createGenome) {
+function checkGenome(g) {
   it("can access gamma property", () => {
-    let g = createGenome();
-
     should(g.gamma).equal(4);
     should(g.gamma = 6).equal(6);
     should(g.gamma).equal(6);
   });
 
   it("toXMLString works", () => {
-    let g = createGenome();
     let str = g.toXMLString();
 
     should(str).startWith("<flame ");
@@ -21,15 +18,11 @@ function checkGenome(createGenome) {
   });
 
   it("palette should look sane", () => {
-    let g = createGenome();
-
     should(g.palette).have.length(256);
     should(g.palette[0]).have.properties([ "red", "green", "blue", "alpha" ]);
   });
 
   it("palette should not be all white", () => {
-    let g = createGenome();
-
     let sum = g.palette.reduce((total, entry) => total + entry.red + entry.green + entry.blue + entry.alpha, 0);
 
     should(sum).be.lessThan(256 * 4);
@@ -38,11 +31,11 @@ function checkGenome(createGenome) {
 
 describe("genome", () => {
   describe("new", () => {
-    checkGenome(() => new flam3.Genome());
+    checkGenome(new flam3.Genome());
   });
 
   describe("function", () => {
-    checkGenome(() => flam3.Genome());
+    checkGenome(flam3.Genome());
   });
 
   describe("random", () => {
@@ -52,7 +45,7 @@ describe("genome", () => {
       should(genome.width).equal(100);
     });
 
-    checkGenome(() => flam3.Genome.createRandom());
+    checkGenome(flam3.Genome.createRandom());
   });
 
   describe("loadFromXML", () => {
@@ -87,7 +80,7 @@ describe("genome", () => {
       should(parsed.gamma).equal(3);
     });
 
-    checkGenome(() => flam3.Genome.fromXMLString(flam3.Genome.createRandom().toXMLString(), "stdin")[0]);
+    checkGenome(flam3.Genome.fromXMLString(flam3.Genome.createRandom().toXMLString(), "stdin")[0]);
   });
 
   if ("gc" in global) {
