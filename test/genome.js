@@ -15,6 +15,28 @@ function checkGenome(g) {
     should(reloaded.gamma).equal(6);
   });
 
+  it("can access background", () => {
+    should(g).has.property("background");
+    should(g.background).has.properties(["red", "green", "blue"]);
+    should(g.background).not.have.property("alpha");
+    should(g.background.red).equal(0);
+    should(g.background.green).equal(0);
+    should(g.background.blue).equal(0);
+
+    g.background.red = 0.5;
+    g.background.blue = 0.6;
+
+    should(g.background.red).equal(0.5);
+    should(g.background.green).equal(0);
+    should(g.background.blue).equal(0.6);
+
+    let parsed = flam3.Genome.fromXMLString(g.toXMLString(), "stdin")[0];
+
+    should(parsed.background.red).equal(0.5);
+    should(parsed.background.green).equal(0);
+    should(parsed.background.blue).equal(0.6);
+  });
+
   it("can access name property", () => {
     should(g.name).equal("");
     should(g.name = "foobar").equal("foobar");

@@ -35,7 +35,12 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
   Palette* plt = Palette::NewInstance(&genome.palette);
   NanAssignPersistent(paletteObj, NanObjectWrapHandle(plt));
 
+  Color* color = new Color(genome.background, 3);
+  NanAssignPersistent(backgroundObj, NanObjectWrapHandle(color));
+
   jsObj->SetAccessor(NanNew<String>("palette"), GetPalette, NULL,
+    Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+  jsObj->SetAccessor(NanNew<String>("background"), GetBackground, NULL,
     Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
   jsObj->SetAccessor(NanNew<String>("name"), GetName, SetName,
     Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(DontDelete));
@@ -51,7 +56,6 @@ Genome::~Genome() {
 /*void Genome::Init(Handle<Object> jsObj) {
   // double center[2];
   // double rot_center[2];
-  // double background[3];
 }*/
 
 NAN_GETTER(Genome::GetPalette) {
@@ -59,6 +63,13 @@ NAN_GETTER(Genome::GetPalette) {
 
   Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
   NanReturnValue(NanNew<Object>(genome->paletteObj));
+}
+
+NAN_GETTER(Genome::GetBackground) {
+  NanScope();
+
+  Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
+  NanReturnValue(NanNew<Object>(genome->backgroundObj));
 }
 
 NAN_GETTER(Genome::GetName) {
@@ -172,6 +183,9 @@ void Genome::CloneGenome(flam3_genome* cp) {
   memset(cp, 0, sizeof(flam3_genome));
   clear_cp(cp, flam3_defaults_on);
   flam3_copy(cp, &genome);
+
+  Color* color = ObjectWrap::Unwrap<Color>(NanNew<Object>(backgroundObj));
+  memcpy(cp->background, color->colors, sizeof(double) * 3);
 
   Palette* palette = ObjectWrap::Unwrap<Palette>(NanNew<Object>(paletteObj));
   palette->ClonePalette(&genome.palette);

@@ -11,9 +11,7 @@ Color::Color(double colors[], int count) {
   Local<Object> jsObj = tpl->NewInstance();
   Wrap(jsObj);
 
-  red = colors[0];
-  green = colors[1];
-  blue = colors[2];
+  memcpy(this->colors, colors, sizeof(double) * count);
 
   jsObj->SetAccessor(NanNew<String>("red"), GetProperty, SetProperty,
     Local<Value>(), DEFAULT, DontDelete);
@@ -23,13 +21,11 @@ Color::Color(double colors[], int count) {
     Local<Value>(), DEFAULT, DontDelete);
 
   if (count >= 4) {
-    alpha = colors[3];
-
     jsObj->SetAccessor(NanNew<String>("alpha"), GetProperty, SetProperty,
       Local<Value>(), DEFAULT, DontDelete);
   }
   else {
-    alpha = -1;
+    this->colors[3] = -1;
   }
 }
 
@@ -38,16 +34,16 @@ Color::~Color() {
 
 double* Color::GetPropertyPtr(const char* name) {
   if (strcmp("red", name) == 0) {
-    return &red;
+    return &colors[0];
   }
   else if (strcmp("green", name) == 0) {
-    return &green;
+    return &colors[1];
   }
   else if (strcmp("blue", name) == 0) {
-    return &blue;
+    return &colors[2];
   }
-  else if (strcmp("alpha", name) == 0 && alpha >= 0) {
-    return &alpha;
+  else if (strcmp("alpha", name) == 0 && colors[3] >= 0) {
+    return &colors[3];
   }
   else {
     return NULL;
@@ -170,10 +166,7 @@ void Palette::ClonePalette(flam3_palette* palette) {
 
     entry->index = i;
 
-    entry->color[0] = color->red;
-    entry->color[1] = color->green;
-    entry->color[2] = color->blue;
-    entry->color[3] = color->alpha;
+    memcpy(&entry->color, color->colors, sizeof(double) * 4);
   }
 }
 

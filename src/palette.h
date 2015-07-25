@@ -12,18 +12,12 @@ extern "C" {
 using namespace v8;
 using namespace node;
 
-class Genome;
-class Palette;
-
 class Color : public node::ObjectWrap {
   public:
     Color(double colors[], int count);
     ~Color();
 
-    double red;
-    double green;
-    double blue;
-    double alpha;
+    double colors[4];
 
   private:
     static NAN_GETTER(GetProperty);
@@ -33,8 +27,6 @@ class Color : public node::ObjectWrap {
 };
 
 class Palette : public node::ObjectWrap {
-  friend class PaletteEntry;
-
   public:
     static Palette* NewInstance(flam3_palette* palette);
 

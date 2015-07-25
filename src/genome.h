@@ -27,8 +27,6 @@ typedef struct {
 } genome_property;
 
 class Genome : public node::ObjectWrap {
-  friend class Palette;
-
   public:
     Genome(Handle<Object> jsObj, flam3_genome* cp);
 
@@ -43,6 +41,7 @@ class Genome : public node::ObjectWrap {
     static NAN_METHOD(Parse);
 
     static NAN_GETTER(GetPalette);
+    static NAN_GETTER(GetBackground);
     static NAN_GETTER(GetName);
     static NAN_SETTER(SetName);
 
@@ -61,6 +60,7 @@ class Genome : public node::ObjectWrap {
     static Persistent<Function> constructor;
 
     Persistent<Object> paletteObj;
+    Persistent<Object> backgroundObj;
     flam3_genome genome;
 };
 
