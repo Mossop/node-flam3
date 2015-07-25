@@ -34,7 +34,7 @@ class Genome : public node::ObjectWrap {
 
     static void Export(Handle<v8::Object> exports);
 
-    flam3_genome genome;
+    void CloneGenome(flam3_genome* cp);
 
   private:
     ~Genome();
@@ -61,6 +61,7 @@ class Genome : public node::ObjectWrap {
     static Persistent<Function> constructor;
 
     Palette* palette;
+    flam3_genome genome;
 };
 
 #endif

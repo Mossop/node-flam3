@@ -5,6 +5,16 @@
 
 int32_t sGenomeCount = 0;
 
+void free_genome(flam3_genome & genome) {
+  xmlFreeDoc(genome.edits);
+  clear_cp(&genome, flam3_defaults_on);
+}
+
+void free_genome(flam3_genome* genome) {
+  free_genome(*genome);
+  flam3_free(genome);
+}
+
 Persistent<Function> Genome::constructor;
 
 genome_property Genome_Properties[] = GENOME_PROPERTIES;
@@ -32,7 +42,7 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
 
 Genome::~Genome() {
   assert(palette == NULL);
-  clear_cp(&genome, flam3_defaults_on);
+  free_genome(genome);
 
   sGenomeCount--;
 }
@@ -159,6 +169,12 @@ NAN_PROPERTY_ENUMERATOR(Genome::EnumerateProperties) {
   }
 
   NanReturnValue(results);
+}
+
+void Genome::CloneGenome(flam3_genome* cp) {
+  memset(cp, 0, sizeof(flam3_genome));
+  clear_cp(cp, flam3_defaults_on);
+  flam3_copy(cp, &genome);
 }
 
 void Genome::Export(Handle<Object> exports) {
@@ -328,7 +344,7 @@ NAN_METHOD(Genome::Random) {
   genome.pixels_per_unit = genome.width / (bmax[0] - bmin[0]);
 
   Genome* obj = Genome::NewInstance(&genome);
-  clear_cp(&genome, flam3_defaults_on);
+  free_genome(genome);
 
   NanReturnValue(NanObjectWrapHandle(obj));
 }
@@ -354,8 +370,9 @@ NAN_METHOD(Genome::Parse) {
   for (int i = 0; i < count; i++) {
     flam3_genome* genome = genomes + i;
     results->Set(i, NanObjectWrapHandle(Genome::NewInstance(genome)));
-    xmlFreeDoc(genome->edits);
-    clear_cp(genome, 0);
+    // We want to clear the contents of the genome freeing the array below will
+    // clear the genome structure
+    free_genome(*genome);
   }
 
   flam3_free(genomes);
@@ -366,7 +383,10 @@ NAN_METHOD(Genome::ToXMLString) {
   NanScope();
 
   Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
-  char* str = flam3_print_to_string(&obj->genome);
+  flam3_genome genome;
+  obj->CloneGenome(&genome);
+  char* str = flam3_print_to_string(&genome);
+  free_genome(genome);
   Local<String> xml = NanNew<String>(str);
   flam3_free(str);
 
@@ -375,11 +395,9 @@ NAN_METHOD(Genome::ToXMLString) {
 
 class Renderer : public NanAsyncWorker {
   public:
-    Renderer(NanCallback *callback, flam3_genome* genome, Handle<Object> options) : NanAsyncWorker(callback) {
-      this->genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
-      memset(this->genome, 0, sizeof(flam3_genome));
-      clear_cp(this->genome, flam3_defaults_on);
-      flam3_copy(this->genome, genome);
+    Renderer(NanCallback *callback, Genome* gnm, Handle<Object> options) : NanAsyncWorker(callback) {
+      genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
+      gnm->CloneGenome(genome);
 
       /* Force ntemporal_samples to 1 for -render */
       genome->ntemporal_samples = 1;
@@ -408,8 +426,7 @@ class Renderer : public NanAsyncWorker {
     }
 
     ~Renderer() {
-      clear_cp(genome, flam3_defaults_on);
-      flam3_free(genome);
+      free_genome(genome);
     }
 
     void Execute () {
@@ -471,6 +488,6 @@ NAN_METHOD(Genome::Render) {
 
   NanCallback *callback = new NanCallback(args[1].As<Function>());
 
-  NanAsyncQueueWorker(new Renderer(callback, &obj->genome, options));
+  NanAsyncQueueWorker(new Renderer(callback, obj, options));
   NanReturnUndefined();
 }
