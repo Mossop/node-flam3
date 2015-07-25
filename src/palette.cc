@@ -27,6 +27,8 @@ PaletteEntry::PaletteEntry(Palette* palette, int index) {
 PaletteEntry::~PaletteEntry() {
   NanScope();
 
+  Palette* palette = ObjectWrap::Unwrap<Palette>(NanNew<Object>(paletteObj));
+  palette->entries[index] = NULL;
   NanDisposePersistent(paletteObj);
 }
 
@@ -86,29 +88,32 @@ NAN_SETTER(PaletteEntry::SetProperty) {
 
 Persistent<Function> Palette::constructor;
 
-Palette::Palette(Handle<Object> jsObj) {
+Palette::Palette(Handle<Object> jsObj, Genome* genome) {
   NanScope();
 
   Wrap(jsObj);
 
   DEFINE_READONLY_PROPERTY(length, NanNew<Number>(256))
+
+  memset(&entries, 0, sizeof(entries));
+  NanAssignPersistent(genomeObj, NanObjectWrapHandle(genome));
+  palette = &genome->genome.palette;
 }
 
 Palette::~Palette() {
   NanScope();
 
-  AdoptGenome(NULL);
+  Genome* genome = ObjectWrap::Unwrap<Genome>(NanNew<Object>(genomeObj));
+  genome->palette = NULL;
+  NanDisposePersistent(genomeObj);
 }
 
-void Palette::AdoptGenome(Genome* genome) {
-  NanScope();
-
-  NanDisposePersistent(genomeObj);
-
-  if (genome) {
-    NanAssignPersistent(genomeObj, NanObjectWrapHandle(genome));
-    palette = &genome->genome.palette;
+PaletteEntry* Palette::GetEntry(int index) {
+  if (entries[index]) {
+    return entries[index];
   }
+
+  return entries[index] = new PaletteEntry(this, index);
 }
 
 NAN_INDEX_GETTER(Palette::GetIndex) {
@@ -116,8 +121,8 @@ NAN_INDEX_GETTER(Palette::GetIndex) {
 
   Palette* obj = ObjectWrap::Unwrap<Palette>(args.Holder());
   if (index < 256) {
-    Local<Object> entry = NanObjectWrapHandle(new PaletteEntry(obj, index));
-    NanReturnValue(entry);
+    PaletteEntry* entry = obj->GetEntry(index);
+    NanReturnValue(NanObjectWrapHandle(entry));
   }
 
   Local<Value> empty;
@@ -129,8 +134,8 @@ NAN_INDEX_SETTER(Palette::SetIndex) {
 
   Palette* obj = ObjectWrap::Unwrap<Palette>(args.Holder());
   if (index < 256) {
-    Local<Object> entry = NanObjectWrapHandle(new PaletteEntry(obj, index));
-    NanReturnValue(entry);
+    PaletteEntry* entry = obj->GetEntry(index);
+    NanReturnValue(NanObjectWrapHandle(entry));
   }
 
   Local<Value> empty;
@@ -173,29 +178,34 @@ NAN_INDEX_ENUMERATOR(Palette::EnumerateIndex) {
 Palette* Palette::NewInstance(Genome* genome) {
   NanScope();
 
-  Local<Value> argv[0];
-  Local<Value> jsObj = NanNew<Function>(constructor)->NewInstance(0, argv);
-  Palette* palette = ObjectWrap::Unwrap<Palette>(jsObj->ToObject());
-
-  if (genome) {
-    palette->AdoptGenome(genome);
-  }
-
-  return palette;
+  Local<Value> argv[] = { NanNew<External>(genome) };
+  Local<Value> jsObj = NanNew<Function>(constructor)->NewInstance(1, argv);
+  return ObjectWrap::Unwrap<Palette>(jsObj->ToObject());
 }
 
 NAN_METHOD(Palette::New) {
   NanScope();
 
-  Palette* palette;
+  if (args.Length() < 1) {
+    NanThrowTypeError("Palette's cannot be constructed from JavaScript");
+    NanReturnUndefined();
+  }
 
+  if (!args[0]->IsExternal()) {
+    NanThrowTypeError("Palette's cannot be constructed from JavaScript");
+    NanReturnUndefined();
+  }
+
+  Genome* genome = reinterpret_cast<Genome*>(External::Cast(*args[0])->Value());
+
+  Palette* palette;
   if (args.IsConstructCall()) {
     // Invoked as constructor: `new Palette(...)`
-    palette = new Palette(args.This());
+    palette = new Palette(args.This(), genome);
   }
   else {
     // Invoked as plain function `Palette(...)`, turn into construct call.
-    palette = NewInstance(NULL);
+    palette = NewInstance(genome);
   }
 
   NanReturnValue(NanObjectWrapHandle(palette));

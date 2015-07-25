@@ -9,14 +9,20 @@ Persistent<Function> Genome::constructor;
 
 genome_property Genome_Properties[] = GENOME_PROPERTIES;
 
-Genome::Genome(Handle<Object> jsObj) {
+Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
   NanScope();
 
   sGenomeCount++;
   Wrap(jsObj);
 
+  palette = NULL;
+
   memset(&genome, 0, sizeof(flam3_genome));
   clear_cp(&genome, flam3_defaults_on);
+
+  if (cp) {
+    flam3_copy(&genome, cp);
+  }
 
   jsObj->SetAccessor(NanNew<String>("palette"), GetPalette, NULL,
     Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
@@ -25,14 +31,10 @@ Genome::Genome(Handle<Object> jsObj) {
 }
 
 Genome::~Genome() {
+  assert(palette == NULL);
   clear_cp(&genome, flam3_defaults_on);
 
   sGenomeCount--;
-}
-
-void Genome::AdoptGenome(flam3_genome* new_genome) {
-  clear_cp(&genome, flam3_defaults_on);
-  flam3_copy(&genome, new_genome);
 }
 
 /*void Genome::Init(Handle<Object> jsObj) {
@@ -45,8 +47,11 @@ NAN_GETTER(Genome::GetPalette) {
   NanScope();
 
   Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
-  Palette* palette = Palette::NewInstance(genome);
-  NanReturnValue(NanObjectWrapHandle(palette));
+  if (!genome->palette) {
+    genome->palette = Palette::NewInstance(genome);
+  }
+
+  NanReturnValue(NanObjectWrapHandle(genome->palette));
 }
 
 NAN_GETTER(Genome::GetName) {
@@ -183,29 +188,44 @@ void Genome::Export(Handle<Object> exports) {
 Genome* Genome::NewInstance(flam3_genome* cp) {
   NanScope();
 
-  Local<Value> argv[0];
-  Local<Value> jsObj = NanNew<Function>(constructor)->NewInstance(0, argv);
-  Genome* genome = ObjectWrap::Unwrap<Genome>(jsObj->ToObject());
+  Local<Value> jsObj;
 
   if (cp) {
-    genome->AdoptGenome(cp);
+    Local<Value> argv[] = { NanNew<External>(cp) };
+    jsObj = NanNew<Function>(constructor)->NewInstance(1, argv);
+  }
+  else {
+    Local<Value> argv[0];
+    jsObj = NanNew<Function>(constructor)->NewInstance(0, argv);
   }
 
+  Genome* genome = ObjectWrap::Unwrap<Genome>(jsObj->ToObject());
   return genome;
 }
 
 NAN_METHOD(Genome::New) {
   NanScope();
 
+  flam3_genome* cp = NULL;
+
+  if (args.Length() >= 1) {
+    if (!args[0]->IsExternal()) {
+      NanThrowTypeError("Argument 0 was of an unexpected type.");
+      NanReturnUndefined();
+    }
+
+    cp = reinterpret_cast<flam3_genome*>(External::Cast(*args[0])->Value());
+  }
+
   Genome* genome;
 
   if (args.IsConstructCall()) {
     // Invoked as constructor: `new Genome(...)`
-    genome = new Genome(args.This());
+    genome = new Genome(args.This(), cp);
   }
   else {
     // Invoked as plain function `Genome(...)`, turn into construct call.
-    genome = NewInstance(NULL);
+    genome = NewInstance(cp);
   }
 
   NanReturnValue(NanObjectWrapHandle(genome));

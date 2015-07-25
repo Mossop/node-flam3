@@ -54,7 +54,7 @@ function checkGenome(g) {
     should(sum).be.lessThan(256 * 4);
   });
 
-  it.skip("palette should match itself", () => {
+  it("palette should match itself", () => {
     should(g.palette).equal(g.palette);
     should(g.palette[0]).equal(g.palette[0]);
   });
@@ -127,6 +127,15 @@ describe("genome", () => {
     });
 
     checkGenome(flam3.Genome.fromXMLString(flam3.Genome.createRandom().toXMLString(), "stdin")[0]);
+  });
+
+  describe("Palette", () => {
+    it("Can't call", () => {
+      should.throws(() => flam3.Palette(), TypeError, "cannot be constructed from JavaScript");
+      should.throws(() => new flam3.Palette(), TypeError, "cannot be constructed from JavaScript");
+      should.throws(() => flam3.Palette(5), TypeError, "cannot be constructed from JavaScript");
+      should.throws(() => new flam3.Palette(4), TypeError, "cannot be constructed from JavaScript");
+    })
   });
 
   if ("gc" in global) {

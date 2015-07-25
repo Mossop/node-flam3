@@ -35,7 +35,7 @@ class Palette : public node::ObjectWrap {
   friend class PaletteEntry;
 
   public:
-    Palette(Handle<Object> jsObj);
+    Palette(Handle<Object> jsObj, Genome* genome);
     ~Palette();
 
     static Palette* NewInstance(Genome* genome);
@@ -45,8 +45,6 @@ class Palette : public node::ObjectWrap {
     flam3_palette* palette;
 
   private:
-    void AdoptGenome(Genome* genome);
-
     static NAN_INDEX_GETTER(GetIndex);
     static NAN_INDEX_SETTER(SetIndex);
     static NAN_INDEX_QUERY(QueryIndex);
@@ -55,9 +53,13 @@ class Palette : public node::ObjectWrap {
 
     static NAN_METHOD(New);
 
+    PaletteEntry* GetEntry(int index);
+
     static Persistent<Function> constructor;
 
     Persistent<Object> genomeObj;
+
+    PaletteEntry* entries[256];
 };
 
 #endif
