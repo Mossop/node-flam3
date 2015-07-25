@@ -25,14 +25,15 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
   sGenomeCount++;
   Wrap(jsObj);
 
-  palette = NULL;
-
   memset(&genome, 0, sizeof(flam3_genome));
   clear_cp(&genome, flam3_defaults_on);
 
   if (cp) {
     flam3_copy(&genome, cp);
   }
+
+  Palette* plt = Palette::NewInstance(&genome.palette);
+  NanAssignPersistent(paletteObj, NanObjectWrapHandle(plt));
 
   jsObj->SetAccessor(NanNew<String>("palette"), GetPalette, NULL,
     Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
@@ -41,7 +42,7 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
 }
 
 Genome::~Genome() {
-  assert(palette == NULL);
+  NanDisposePersistent(paletteObj);
   free_genome(genome);
 
   sGenomeCount--;
@@ -57,11 +58,7 @@ NAN_GETTER(Genome::GetPalette) {
   NanScope();
 
   Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
-  if (!genome->palette) {
-    genome->palette = Palette::NewInstance(genome);
-  }
-
-  NanReturnValue(NanObjectWrapHandle(genome->palette));
+  NanReturnValue(NanNew<Object>(genome->paletteObj));
 }
 
 NAN_GETTER(Genome::GetName) {
@@ -175,6 +172,9 @@ void Genome::CloneGenome(flam3_genome* cp) {
   memset(cp, 0, sizeof(flam3_genome));
   clear_cp(cp, flam3_defaults_on);
   flam3_copy(cp, &genome);
+
+  Palette* palette = ObjectWrap::Unwrap<Palette>(NanNew<Object>(paletteObj));
+  palette->ClonePalette(&genome.palette);
 }
 
 void Genome::Export(Handle<Object> exports) {

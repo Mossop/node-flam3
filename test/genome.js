@@ -158,7 +158,7 @@ describe("genome", () => {
         should(flam3.genomeCount).equal(count);
       });
 
-      it("palette references hold the genome alive", () => {
+      it("palette references don't hold the genome alive", () => {
         global.gc();
         global.gc();
         global.gc();
@@ -172,14 +172,14 @@ describe("genome", () => {
         global.gc();
         global.gc();
         global.gc();
-        should(flam3.genomeCount).equal(count + 1);
+        should(flam3.genomeCount).equal(count);
 
         let entry = palette[0];
         palette = null;
         global.gc();
         global.gc();
         global.gc();
-        should(flam3.genomeCount).equal(count + 1);
+        should(flam3.genomeCount).equal(count);
 
         entry = null;
         global.gc();

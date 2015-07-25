@@ -2,11 +2,8 @@
 #include "palette.h"
 #include "genome.h"
 
-PaletteEntry::PaletteEntry(Palette* palette, int index) {
+Color::Color(double colors[], int count) {
   NanScope();
-
-  this->index = index;
-  NanAssignPersistent(paletteObj, NanObjectWrapHandle(palette));
 
   Local<ObjectTemplate> tpl = NanNew<ObjectTemplate>();
   tpl->SetInternalFieldCount(1);
@@ -14,56 +11,54 @@ PaletteEntry::PaletteEntry(Palette* palette, int index) {
   Local<Object> jsObj = tpl->NewInstance();
   Wrap(jsObj);
 
+  red = colors[0];
+  green = colors[1];
+  blue = colors[2];
+
   jsObj->SetAccessor(NanNew<String>("red"), GetProperty, SetProperty,
     Local<Value>(), DEFAULT, DontDelete);
   jsObj->SetAccessor(NanNew<String>("green"), GetProperty, SetProperty,
     Local<Value>(), DEFAULT, DontDelete);
   jsObj->SetAccessor(NanNew<String>("blue"), GetProperty, SetProperty,
     Local<Value>(), DEFAULT, DontDelete);
-  jsObj->SetAccessor(NanNew<String>("alpha"), GetProperty, SetProperty,
-    Local<Value>(), DEFAULT, DontDelete);
+
+  if (count >= 4) {
+    alpha = colors[3];
+
+    jsObj->SetAccessor(NanNew<String>("alpha"), GetProperty, SetProperty,
+      Local<Value>(), DEFAULT, DontDelete);
+  }
+  else {
+    alpha = -1;
+  }
 }
 
-PaletteEntry::~PaletteEntry() {
-  NanScope();
-
-  Palette* palette = ObjectWrap::Unwrap<Palette>(NanNew<Object>(paletteObj));
-  palette->entries[index] = NULL;
-  NanDisposePersistent(paletteObj);
+Color::~Color() {
 }
 
-flam3_palette_entry* PaletteEntry::GetPaletteEntry() {
-  NanScope();
-
-  Local<Object> palette = NanNew<Object>(paletteObj);
-  return &(*(ObjectWrap::Unwrap<Palette>(palette)->palette))[index];
-}
-
-double* PaletteEntry::GetPropertyPtr(const char* name) {
-  flam3_palette_entry* entry = GetPaletteEntry();
-
+double* Color::GetPropertyPtr(const char* name) {
   if (strcmp("red", name) == 0) {
-    return &entry->color[0];
+    return &red;
   }
   else if (strcmp("green", name) == 0) {
-    return &entry->color[1];
+    return &green;
   }
   else if (strcmp("blue", name) == 0) {
-    return &entry->color[2];
+    return &blue;
   }
-  else if (strcmp("alpha", name) == 0) {
-    return &entry->color[3];
+  else if (strcmp("alpha", name) == 0 && alpha >= 0) {
+    return &alpha;
   }
   else {
     return NULL;
   }
 }
 
-NAN_GETTER(PaletteEntry::GetProperty) {
+NAN_GETTER(Color::GetProperty) {
   NanScope();
 
   NanUtf8String name(property);
-  PaletteEntry* entry = ObjectWrap::Unwrap<PaletteEntry>(args.Holder());
+  Color* entry = ObjectWrap::Unwrap<Color>(args.Holder());
 
   double* result = entry->GetPropertyPtr(*name);
   if (result) {
@@ -73,11 +68,11 @@ NAN_GETTER(PaletteEntry::GetProperty) {
   NanReturnUndefined();
 }
 
-NAN_SETTER(PaletteEntry::SetProperty) {
+NAN_SETTER(Color::SetProperty) {
   NanScope();
 
   NanUtf8String name(property);
-  PaletteEntry* entry = ObjectWrap::Unwrap<PaletteEntry>(args.Holder());
+  Color* entry = ObjectWrap::Unwrap<Color>(args.Holder());
 
   double* result = entry->GetPropertyPtr(*name);
   if (result) {
@@ -88,32 +83,25 @@ NAN_SETTER(PaletteEntry::SetProperty) {
 
 Persistent<Function> Palette::constructor;
 
-Palette::Palette(Handle<Object> jsObj, Genome* genome) {
+Palette::Palette(Handle<Object> jsObj, flam3_palette* palette) {
   NanScope();
 
   Wrap(jsObj);
 
   DEFINE_READONLY_PROPERTY(length, NanNew<Number>(256))
 
-  memset(&entries, 0, sizeof(entries));
-  NanAssignPersistent(genomeObj, NanObjectWrapHandle(genome));
-  palette = &genome->genome.palette;
+  for (int i = 0; i < 256; i++) {
+    Color* color = new Color((*palette)[i].color, 4);
+    NanAssignPersistent(colors[i], NanObjectWrapHandle(color));
+  }
 }
 
 Palette::~Palette() {
   NanScope();
-
-  Genome* genome = ObjectWrap::Unwrap<Genome>(NanNew<Object>(genomeObj));
-  genome->palette = NULL;
-  NanDisposePersistent(genomeObj);
 }
 
-PaletteEntry* Palette::GetEntry(int index) {
-  if (entries[index]) {
-    return entries[index];
-  }
-
-  return entries[index] = new PaletteEntry(this, index);
+Color* Palette::GetColor(int index) {
+  return ObjectWrap::Unwrap<Color>(NanNew<Object>(colors[index]));
 }
 
 NAN_INDEX_GETTER(Palette::GetIndex) {
@@ -121,8 +109,8 @@ NAN_INDEX_GETTER(Palette::GetIndex) {
 
   Palette* obj = ObjectWrap::Unwrap<Palette>(args.Holder());
   if (index < 256) {
-    PaletteEntry* entry = obj->GetEntry(index);
-    NanReturnValue(NanObjectWrapHandle(entry));
+    Color* color = obj->GetColor(index);
+    NanReturnValue(NanObjectWrapHandle(color));
   }
 
   Local<Value> empty;
@@ -134,8 +122,8 @@ NAN_INDEX_SETTER(Palette::SetIndex) {
 
   Palette* obj = ObjectWrap::Unwrap<Palette>(args.Holder());
   if (index < 256) {
-    PaletteEntry* entry = obj->GetEntry(index);
-    NanReturnValue(NanObjectWrapHandle(entry));
+    Color* color = obj->GetColor(index);
+    NanReturnValue(NanObjectWrapHandle(color));
   }
 
   Local<Value> empty;
@@ -175,10 +163,24 @@ NAN_INDEX_ENUMERATOR(Palette::EnumerateIndex) {
   NanReturnValue(results);
 }
 
-Palette* Palette::NewInstance(Genome* genome) {
+void Palette::ClonePalette(flam3_palette* palette) {
+  for (int i = 0; i < 256; i++) {
+    flam3_palette_entry* entry = &(*palette)[i];
+    Color* color = GetColor(i);
+
+    entry->index = i;
+
+    entry->color[0] = color->red;
+    entry->color[1] = color->green;
+    entry->color[2] = color->blue;
+    entry->color[3] = color->alpha;
+  }
+}
+
+Palette* Palette::NewInstance(flam3_palette* palette) {
   NanScope();
 
-  Local<Value> argv[] = { NanNew<External>(genome) };
+  Local<Value> argv[] = { NanNew<External>(palette) };
   Local<Value> jsObj = NanNew<Function>(constructor)->NewInstance(1, argv);
   return ObjectWrap::Unwrap<Palette>(jsObj->ToObject());
 }
@@ -196,19 +198,19 @@ NAN_METHOD(Palette::New) {
     NanReturnUndefined();
   }
 
-  Genome* genome = reinterpret_cast<Genome*>(External::Cast(*args[0])->Value());
+  flam3_palette* palette = reinterpret_cast<flam3_palette*>(External::Cast(*args[0])->Value());
 
-  Palette* palette;
+  Palette* plt;
   if (args.IsConstructCall()) {
     // Invoked as constructor: `new Palette(...)`
-    palette = new Palette(args.This(), genome);
+    plt = new Palette(args.This(), palette);
   }
   else {
     // Invoked as plain function `Palette(...)`, turn into construct call.
-    palette = NewInstance(genome);
+    plt = NewInstance(palette);
   }
 
-  NanReturnValue(NanObjectWrapHandle(palette));
+  NanReturnValue(NanObjectWrapHandle(plt));
 }
 
 void Palette::Export(Handle<Object> exports) {
