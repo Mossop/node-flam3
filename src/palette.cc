@@ -80,10 +80,8 @@ NAN_SETTER(PaletteEntry::SetProperty) {
   double* result = entry->GetPropertyPtr(*name);
   if (result) {
     *result = value->NumberValue();
-    NanReturnValue(value);
+    return;
   }
-
-  NanReturnUndefined();
 }
 
 Persistent<Function> Palette::constructor;

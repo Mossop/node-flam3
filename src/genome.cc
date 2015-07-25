@@ -42,26 +42,31 @@ void Genome::AdoptGenome(flam3_genome* new_genome) {
 }*/
 
 NAN_GETTER(Genome::GetPalette) {
+  NanScope();
+
   Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
   Palette* palette = Palette::NewInstance(genome);
   NanReturnValue(NanObjectWrapHandle(palette));
 }
 
 NAN_GETTER(Genome::GetName) {
+  NanScope();
+
   Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
   NanReturnValue(NanNew<String>(genome->genome.flame_name));
 }
 
 NAN_SETTER(Genome::SetName) {
+  NanScope();
+
   NanUtf8String str(value);
   if (strlen(*str) > flam3_name_len) {
     NanThrowTypeError("Name was too long");
-    NanReturnUndefined();
+    return;
   }
 
   Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
   strncpy(genome->genome.flame_name, *str, flam3_name_len);
-  NanReturnValue(NanNew<String>(genome->genome.flame_name));
 }
 
 NAN_PROPERTY_GETTER(Genome::GetProperty) {
@@ -141,6 +146,8 @@ NAN_PROPERTY_DELETER(Genome::DeleteProperty) {
 }
 
 NAN_PROPERTY_ENUMERATOR(Genome::EnumerateProperties) {
+  NanScope();
+
   Local<Array> results = NanNew<Array>(GENOME_PROPERTY_COUNT);
   for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
     results->Set(i, NanNew<String>(Genome_Properties[i].name));
