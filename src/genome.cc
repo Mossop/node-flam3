@@ -1,109 +1,135 @@
-#include "nativefields.h"
+#include "fields.h"
 #include "genome.h"
+#include "palette.h"
 #include <isaac.h>
 
 int32_t sGenomeCount = 0;
 
-PaletteEntry::PaletteEntry(Genome* genome, flam3_palette_entry* entry) {
-  this->entry = entry;
-  NanAssignPersistent(genomeObj, NanObjectWrapHandle(genome));
-
-  Local<ObjectTemplate> tpl = NanNew<ObjectTemplate>();
-  tpl->SetInternalFieldCount(1);
-  Wrap(tpl->NewInstance());
-
-  DEFINE_DBL_PROPERTY(red, entry->color[0])
-  DEFINE_DBL_PROPERTY(green, entry->color[1])
-  DEFINE_DBL_PROPERTY(blue, entry->color[2])
-  DEFINE_DBL_PROPERTY(alpha, entry->color[3])
-}
-
-PaletteEntry::~PaletteEntry() {
-  NanDisposePersistent(genomeObj);
-}
-
 Persistent<Function> Genome::constructor;
 
+genome_property Genome_Properties[] = GENOME_PROPERTIES;
+
 Genome::Genome(Handle<Object> jsObj) {
-  genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
-  memset(genome, 0, sizeof(flam3_genome));
-  clear_cp(genome, flam3_defaults_on);
+  NanScope();
 
-  Init(jsObj);
-}
-
-Genome::Genome(flam3_genome* genome) {
-  this->genome = reinterpret_cast<flam3_genome*>(flam3_malloc(sizeof(flam3_genome)));
-  memset(this->genome, 0, sizeof(flam3_genome));
-  clear_cp(this->genome, flam3_defaults_on);
-  flam3_copy(this->genome, genome);
-
-  Local<ObjectTemplate> tpl = NanNew<ObjectTemplate>();
-  tpl->SetInternalFieldCount(1);
-
-  Init(tpl->NewInstance());
-}
-
-Genome::~Genome() {
-  clear_cp(genome, flam3_defaults_on);
-  flam3_free(genome);
-  sGenomeCount--;
-}
-
-void Genome::Init(Handle<Object> jsObj) {
   sGenomeCount++;
   Wrap(jsObj);
 
-  // char flame_name[flam3_name_len+1]; /* 64 chars plus a null */
-  DEFINE_STRUCT_DBL_PROPERTY(genome, time)
-  DEFINE_STRUCT_INT_PROPERTY(genome, interpolation)
-  DEFINE_STRUCT_INT_PROPERTY(genome, interpolation_type)
-  DEFINE_STRUCT_INT_PROPERTY(genome, palette_interpolation)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, hsv_rgb_palette_blend)
-   
-  DEFINE_STRUCT_INT_PROPERTY(genome, genome_index)
-  // char parent_fname[flam3_parent_fn_len];   /* base filename where parent was located */
-  DEFINE_STRUCT_INT_PROPERTY(genome, symmetry)
-  DEFINE_STRUCT_INT_PROPERTY(genome, palette_index)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, brightness)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, contrast)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, gamma)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, highlight_power)
-  DEFINE_STRUCT_INT_PROPERTY(genome, width)
-  DEFINE_STRUCT_INT_PROPERTY(genome, height)
-  DEFINE_STRUCT_INT_PROPERTY(genome, spatial_oversample)
-  // double center[2];             /* of camera */
-  // double rot_center[2];         /* really the center */
-  DEFINE_STRUCT_DBL_PROPERTY(genome, rotate)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, vibrancy)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, hue_rotation)
-  // double background[3];
-  DEFINE_STRUCT_DBL_PROPERTY(genome, zoom)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, pixels_per_unit)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, spatial_filter_radius)
-  DEFINE_STRUCT_INT_PROPERTY(genome, spatial_filter_select)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, sample_density)
-  DEFINE_STRUCT_INT_PROPERTY(genome, nbatches)
-  DEFINE_STRUCT_INT_PROPERTY(genome, ntemporal_samples)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, estimator)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, estimator_curve)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, estimator_minimum)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, gam_lin_thresh)
-  DEFINE_STRUCT_INT_PROPERTY(genome, palette_index0)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, hue_rotation0)
-  DEFINE_STRUCT_INT_PROPERTY(genome, palette_index1)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, hue_rotation1)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, palette_blend)
-  DEFINE_STRUCT_INT_PROPERTY(genome, temporal_filter_type)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, temporal_filter_width)
-  DEFINE_STRUCT_DBL_PROPERTY(genome, temporal_filter_exp)
-  DEFINE_STRUCT_INT_PROPERTY(genome, palette_mode)
+  memset(&genome, 0, sizeof(flam3_genome));
+  clear_cp(&genome, flam3_defaults_on);
 
-  jsObj->Set(NanNew<String>("toXMLString"),
-    NanNew<FunctionTemplate>(ToXMLString)->GetFunction());
-  jsObj->Set(NanNew<String>("render"),
-    NanNew<FunctionTemplate>(Render)->GetFunction());
-  jsObj->SetAccessor(NanNew<String>("palette"), BuildPalette);
+  jsObj->SetAccessor(NanNew<String>("palette"), GetPalette, NULL,
+    Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+}
+
+Genome::~Genome() {
+  clear_cp(&genome, flam3_defaults_on);
+
+  sGenomeCount--;
+}
+
+void Genome::AdoptGenome(flam3_genome* new_genome) {
+  clear_cp(&genome, flam3_defaults_on);
+  flam3_copy(&genome, new_genome);
+}
+
+/*void Genome::Init(Handle<Object> jsObj) {
+  // char flame_name[flam3_name_len+1];
+  // char parent_fname[flam3_parent_fn_len];
+  // double center[2];
+  // double rot_center[2];
+  // double background[3];
+}*/
+
+NAN_GETTER(Genome::GetPalette) {
+  Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
+  Palette* palette = Palette::NewInstance(genome);
+  NanReturnValue(NanObjectWrapHandle(palette));
+}
+
+NAN_PROPERTY_GETTER(Genome::GetProperty) {
+  NanScope();
+
+  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
+
+  NanUtf8String name(property);
+  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
+    if (strcmp(*name, Genome_Properties[i].name) == 0) {
+      char* field = reinterpret_cast<char*>(&obj->genome) + Genome_Properties[i].offset;
+
+      if (Genome_Properties[i].type == DOUBLE) {
+        NanReturnValue(NanNew<Number>(*(reinterpret_cast<double*>(field))));
+      }
+      else {
+        NanReturnValue(NanNew<Number>(*(reinterpret_cast<int*>(field))));
+      }
+    }
+  }
+
+  Local<Value> empty;
+  NanReturnValue(empty);
+}
+
+NAN_PROPERTY_SETTER(Genome::SetProperty) {
+  NanScope();
+
+  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
+
+  NanUtf8String name(property);
+  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
+    if (strcmp(*name, Genome_Properties[i].name) == 0) {
+      char* field = reinterpret_cast<char*>(&obj->genome) + Genome_Properties[i].offset;
+
+      if (Genome_Properties[i].type == DOUBLE) {
+        *(reinterpret_cast<double*>(field)) = value->NumberValue();
+      }
+      else {
+        *(reinterpret_cast<int*>(field)) = value->NumberValue();
+      }
+      NanReturnValue(value);
+    }
+  }
+
+  Local<Value> empty;
+  NanReturnValue(empty);
+}
+
+NAN_PROPERTY_QUERY(Genome::QueryProperty) {
+  NanScope();
+
+  NanUtf8String name(property);
+  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
+    if (strcmp(*name, Genome_Properties[i].name) == 0) {
+      PropertyAttribute attr = DontDelete;
+      NanReturnValue(NanNew<Integer>(attr));
+    }
+  }
+
+  Local<Integer> empty;
+  NanReturnValue(empty);
+}
+
+NAN_PROPERTY_DELETER(Genome::DeleteProperty) {
+  NanScope();
+
+  NanUtf8String name(property);
+  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
+    if (strcmp(*name, Genome_Properties[i].name) == 0) {
+      NanReturnValue(NanNew<Boolean>(false));
+    }
+  }
+
+  Local<Boolean> empty;
+  NanReturnValue(empty);
+}
+
+NAN_PROPERTY_ENUMERATOR(Genome::EnumerateProperties) {
+  Local<Array> results = NanNew<Array>(GENOME_PROPERTY_COUNT);
+  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
+    results->Set(i, NanNew<String>(Genome_Properties[i].name));
+  }
+
+  NanReturnValue(results);
 }
 
 void Genome::Export(Handle<Object> exports) {
@@ -112,28 +138,53 @@ void Genome::Export(Handle<Object> exports) {
   // Prepare constructor template
   Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
   tpl->SetClassName(NanNew<String>("Genome"));
+
   tpl->Set(NanNew<String>("createRandom"),
     NanNew<FunctionTemplate>(Genome::Random)->GetFunction());
   tpl->Set(NanNew<String>("fromXMLString"),
     NanNew<FunctionTemplate>(Genome::Parse)->GetFunction());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+  NODE_SET_PROTOTYPE_METHOD(tpl, "toXMLString", ToXMLString);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "render", Render);
+
+  Local<ObjectTemplate> objtpl = tpl->InstanceTemplate();
+  objtpl->SetInternalFieldCount(1);
+  objtpl->SetNamedPropertyHandler(GetProperty, SetProperty, QueryProperty,
+    DeleteProperty, EnumerateProperties);
 
   NanAssignPersistent(constructor, tpl->GetFunction());
   exports->Set(NanNew<String>("Genome"), tpl->GetFunction());
 }
 
+Genome* Genome::NewInstance(flam3_genome* cp) {
+  NanScope();
+
+  Local<Value> argv[0];
+  Local<Value> jsObj = NanNew<Function>(constructor)->NewInstance(0, argv);
+  Genome* genome = ObjectWrap::Unwrap<Genome>(jsObj->ToObject());
+
+  if (cp) {
+    genome->AdoptGenome(cp);
+  }
+
+  return genome;
+}
+
 NAN_METHOD(Genome::New) {
   NanScope();
 
+  Genome* genome;
+
   if (args.IsConstructCall()) {
     // Invoked as constructor: `new Genome(...)`
-    Genome* obj = new Genome(args.This());
-    NanReturnValue(NanObjectWrapHandle(obj));
-  } else {
-    // Invoked as plain function `Genome(...)`, turn into construct call.
-    Local<Value> argv[0];
-    NanReturnValue(NanNew<Function>(constructor)->NewInstance(0, argv));
+    genome = new Genome(args.This());
   }
+  else {
+    // Invoked as plain function `Genome(...)`, turn into construct call.
+    genome = NewInstance(NULL);
+  }
+
+  NanReturnValue(NanObjectWrapHandle(genome));
 }
 
 void init_genome(flam3_genome* genome) {
@@ -232,7 +283,7 @@ NAN_METHOD(Genome::Random) {
   genome.rot_center[1] = genome.center[1];
   genome.pixels_per_unit = genome.width / (bmax[0] - bmin[0]);
 
-  Genome* obj = new Genome(&genome);
+  Genome* obj = Genome::NewInstance(&genome);
   clear_cp(&genome, flam3_defaults_on);
 
   NanReturnValue(NanObjectWrapHandle(obj));
@@ -258,7 +309,7 @@ NAN_METHOD(Genome::Parse) {
   Local<Array> results = NanNew<Array>(count);
   for (int i = 0; i < count; i++) {
     flam3_genome* genome = genomes + i;
-    results->Set(i, NanObjectWrapHandle(new Genome(genome)));
+    results->Set(i, NanObjectWrapHandle(Genome::NewInstance(genome)));
     xmlFreeDoc(genome->edits);
     clear_cp(genome, 0);
   }
@@ -267,25 +318,11 @@ NAN_METHOD(Genome::Parse) {
   NanReturnValue(results);
 }
 
-NAN_GETTER(Genome::BuildPalette) {
-  NanScope();
-
-  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
-
-  Local<Array> palette = NanNew<Array>(0);
-  for (int i = 0; i < 256; i++) {
-    flam3_palette_entry *entry = &(obj->genome->palette[i]);
-    palette->Set(i, NanObjectWrapHandle(new PaletteEntry(obj, entry)));
-  }
-
-  NanReturnValue(palette);
-}
-
 NAN_METHOD(Genome::ToXMLString) {
   NanScope();
 
   Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
-  char* str = flam3_print_to_string(obj->genome);
+  char* str = flam3_print_to_string(&obj->genome);
   Local<String> xml = NanNew<String>(str);
   flam3_free(str);
 
@@ -390,6 +427,6 @@ NAN_METHOD(Genome::Render) {
 
   NanCallback *callback = new NanCallback(args[1].As<Function>());
 
-  NanAsyncQueueWorker(new Renderer(callback, obj->genome, options));
+  NanAsyncQueueWorker(new Renderer(callback, &obj->genome, options));
   NanReturnUndefined();
 }

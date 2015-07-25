@@ -2,10 +2,17 @@ const should = require("should");
 const flam3 = require("../lib/index.js");
 
 function checkGenome(g) {
+  it("is a genome", () => {
+    should(g).be.instanceOf(flam3.Genome);
+  });
+
   it("can access gamma property", () => {
     should(g.gamma).equal(4);
     should(g.gamma = 6).equal(6);
     should(g.gamma).equal(6);
+
+    let reloaded = flam3.Genome.fromXMLString(g.toXMLString(), "stdin")[0];
+    should(reloaded.gamma).equal(6);
   });
 
   it("toXMLString works", () => {
@@ -18,14 +25,38 @@ function checkGenome(g) {
   });
 
   it("palette should look sane", () => {
+    should(g.palette).be.instanceOf(flam3.Palette);
     should(g.palette).have.length(256);
     should(g.palette[0]).have.properties([ "red", "green", "blue", "alpha" ]);
   });
 
   it("palette should not be all white", () => {
-    let sum = g.palette.reduce((total, entry) => total + entry.red + entry.green + entry.blue + entry.alpha, 0);
+    let sum = 0;
+    for (let i = 0; i < g.palette.length; i++) {
+      let entry = g.palette[i];
+      sum += entry.red + entry.green + entry.blue + entry.alpha;
+    }
 
     should(sum).be.lessThan(256 * 4);
+  });
+
+  it.skip("palette should match itself", () => {
+    should(g.palette).equal(g.palette);
+  });
+
+  it("cannot change palette", () => {
+    should(delete g.palette).be.false();
+    should(g).have.property("palette");
+
+    should.throws(() => g.palette.length = 5, TypeError, "Cannot assign to read only property");
+    should.throws(() => delete g.palette.length, TypeError, "Cannot delete property");
+    should.throws(() => delete g.palette[0].red, TypeError, "Cannot delete property");
+  });
+
+  it("cannot delete properties", () => {
+    g.gamma = 4;
+    should(delete g.gamma).be.false();
+    should(g.gamma).equal(4);
   });
 }
 
@@ -94,14 +125,17 @@ describe("genome", () => {
         should(flam3.genomeCount).equal(count + 1);
 
         global.gc();
+        global.gc();
         should(flam3.genomeCount).equal(count + 1);
 
         g = null;
+        global.gc();
         global.gc();
         should(flam3.genomeCount).equal(count);
       });
 
       it("palette references hold the genome alive", () => {
+        global.gc();
         global.gc();
         global.gc();
 
@@ -113,15 +147,18 @@ describe("genome", () => {
         g = null;
         global.gc();
         global.gc();
+        global.gc();
         should(flam3.genomeCount).equal(count + 1);
 
         let entry = palette[0];
         palette = null;
         global.gc();
         global.gc();
+        global.gc();
         should(flam3.genomeCount).equal(count + 1);
 
         entry = null;
+        global.gc();
         global.gc();
         global.gc();
         should(flam3.genomeCount).equal(count);

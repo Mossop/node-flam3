@@ -7,6 +7,7 @@ extern "C" {
 }
 
 #include "genome.h"
+#include "palette.h"
 
 using namespace v8;
 
@@ -56,6 +57,7 @@ void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
   exports->SetAccessor(NanNew<String>("genomeCount"), GenomeCountGetter);
 
   Genome::Export(exports);
+  Palette::Export(exports);
 }
 
 NODE_MODULE(flam3_bindings, Init)

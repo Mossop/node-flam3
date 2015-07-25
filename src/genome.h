@@ -1,6 +1,10 @@
+#ifndef GENOME_H
+#define GENOME_H
+
 #include <node.h>
 #include <node_object_wrap.h>
 #include <nan.h>
+#include "includes/properties.h"
 
 extern "C" {
 #include <flam3.h>
@@ -9,38 +13,52 @@ extern "C" {
 using namespace v8;
 using namespace node;
 
+class Palette;
+
+enum Property_Type {
+  INT = 0,
+  DOUBLE = 1
+};
+
+typedef struct {
+  const char* name;
+  Property_Type type;
+  size_t offset;
+} genome_property;
+
 class Genome : public node::ObjectWrap {
   public:
     Genome(Handle<Object> jsObj);
-    Genome(flam3_genome* genome);
 
     static void Export(Handle<v8::Object> exports);
+
+    flam3_genome genome;
 
   private:
     ~Genome();
 
-    void Init(Handle<Object> jsObj);
+    void AdoptGenome(flam3_genome* genome);
 
-    static NAN_METHOD(New);
     static NAN_METHOD(Random);
     static NAN_METHOD(Parse);
 
-    static NAN_GETTER(BuildPalette);
+    static NAN_GETTER(GetPalette);
+
+    static NAN_PROPERTY_GETTER(GetProperty);
+    static NAN_PROPERTY_SETTER(SetProperty);
+    static NAN_PROPERTY_QUERY(QueryProperty);
+    static NAN_PROPERTY_DELETER(DeleteProperty);
+    static NAN_PROPERTY_ENUMERATOR(EnumerateProperties);
+
+    static NAN_METHOD(New);
+    static Genome* NewInstance(flam3_genome* cp);
+
     static NAN_METHOD(ToXMLString);
     static NAN_METHOD(Render);
 
     static Persistent<Function> constructor;
 
-    flam3_genome* genome;
+    Persistent<Object> paletteObj;
 };
 
-class PaletteEntry : public node::ObjectWrap {
-  public:
-    PaletteEntry(Genome* genome, flam3_palette_entry* entry);
-
-  private:
-    ~PaletteEntry();
-
-    Persistent<Object> genomeObj;
-    flam3_palette_entry* entry;
-};
+#endif
