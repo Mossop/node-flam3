@@ -15,6 +15,20 @@ function checkGenome(g) {
     should(reloaded.gamma).equal(6);
   });
 
+  it("can access name property", () => {
+    should(g.name).equal("");
+    should(g.name = "foobar").equal("foobar");
+    should(g.name).equal("foobar");
+
+    let reloaded = flam3.Genome.fromXMLString(g.toXMLString(), "stdin")[0];
+    should(reloaded.name).equal("foobar");
+
+    should.doesNotThrow(() => g.name = "0123456789012345678901234567890123456789012345678901234567890123");
+    should(g.name).equal("0123456789012345678901234567890123456789012345678901234567890123");
+    should.throws(() => g.name = "01234567890123456789012345678901234567890123456789012345678901234", TypeError, "Name was too long");
+    should(g.name).equal("0123456789012345678901234567890123456789012345678901234567890123");
+  });
+
   it("toXMLString works", () => {
     let str = g.toXMLString();
 
@@ -42,6 +56,7 @@ function checkGenome(g) {
 
   it.skip("palette should match itself", () => {
     should(g.palette).equal(g.palette);
+    should(g.palette[0]).equal(g.palette[0]);
   });
 
   it("cannot change palette", () => {

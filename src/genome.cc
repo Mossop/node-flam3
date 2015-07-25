@@ -20,6 +20,8 @@ Genome::Genome(Handle<Object> jsObj) {
 
   jsObj->SetAccessor(NanNew<String>("palette"), GetPalette, NULL,
     Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+  jsObj->SetAccessor(NanNew<String>("name"), GetName, SetName,
+    Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(DontDelete));
 }
 
 Genome::~Genome() {
@@ -34,8 +36,6 @@ void Genome::AdoptGenome(flam3_genome* new_genome) {
 }
 
 /*void Genome::Init(Handle<Object> jsObj) {
-  // char flame_name[flam3_name_len+1];
-  // char parent_fname[flam3_parent_fn_len];
   // double center[2];
   // double rot_center[2];
   // double background[3];
@@ -45,6 +45,23 @@ NAN_GETTER(Genome::GetPalette) {
   Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
   Palette* palette = Palette::NewInstance(genome);
   NanReturnValue(NanObjectWrapHandle(palette));
+}
+
+NAN_GETTER(Genome::GetName) {
+  Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
+  NanReturnValue(NanNew<String>(genome->genome.flame_name));
+}
+
+NAN_SETTER(Genome::SetName) {
+  NanUtf8String str(value);
+  if (strlen(*str) > flam3_name_len) {
+    NanThrowTypeError("Name was too long");
+    NanReturnUndefined();
+  }
+
+  Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
+  strncpy(genome->genome.flame_name, *str, flam3_name_len);
+  NanReturnValue(NanNew<String>(genome->genome.flame_name));
 }
 
 NAN_PROPERTY_GETTER(Genome::GetProperty) {

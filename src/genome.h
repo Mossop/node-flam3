@@ -43,6 +43,8 @@ class Genome : public node::ObjectWrap {
     static NAN_METHOD(Parse);
 
     static NAN_GETTER(GetPalette);
+    static NAN_GETTER(GetName);
+    static NAN_SETTER(SetName);
 
     static NAN_PROPERTY_GETTER(GetProperty);
     static NAN_PROPERTY_SETTER(SetProperty);
