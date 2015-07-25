@@ -34,14 +34,20 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
 
   Palette* plt = Palette::NewInstance(&genome.palette);
   NanAssignPersistent(paletteObj, NanObjectWrapHandle(plt));
+  DEFINE_READONLY_PROPERTY(palette, NanObjectWrapHandle(plt));
 
   Color* color = new Color(genome.background, 3);
   NanAssignPersistent(backgroundObj, NanObjectWrapHandle(color));
+  DEFINE_READONLY_PROPERTY(background, NanObjectWrapHandle(color));
 
-  jsObj->SetAccessor(NanNew<String>("palette"), GetPalette, NULL,
-    Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
-  jsObj->SetAccessor(NanNew<String>("background"), GetBackground, NULL,
-    Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+  Point* center = new Point(genome.center);
+  NanAssignPersistent(centerObj, NanObjectWrapHandle(center));
+  DEFINE_READONLY_PROPERTY(center, NanObjectWrapHandle(center));
+
+  center = new Point(genome.rot_center);
+  NanAssignPersistent(rotationalCenterObj, NanObjectWrapHandle(center));
+  DEFINE_READONLY_PROPERTY(rotationalCenter, NanObjectWrapHandle(center));
+
   jsObj->SetAccessor(NanNew<String>("name"), GetName, SetName,
     Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(DontDelete));
 }
@@ -57,20 +63,6 @@ Genome::~Genome() {
   // double center[2];
   // double rot_center[2];
 }*/
-
-NAN_GETTER(Genome::GetPalette) {
-  NanScope();
-
-  Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
-  NanReturnValue(NanNew<Object>(genome->paletteObj));
-}
-
-NAN_GETTER(Genome::GetBackground) {
-  NanScope();
-
-  Genome* genome = ObjectWrap::Unwrap<Genome>(args.Holder());
-  NanReturnValue(NanNew<Object>(genome->backgroundObj));
-}
 
 NAN_GETTER(Genome::GetName) {
   NanScope();
@@ -186,6 +178,12 @@ void Genome::CloneGenome(flam3_genome* cp) {
 
   Color* color = ObjectWrap::Unwrap<Color>(NanNew<Object>(backgroundObj));
   memcpy(cp->background, color->colors, sizeof(double) * 3);
+
+  Point* point = ObjectWrap::Unwrap<Point>(NanNew<Object>(centerObj));
+  memcpy(cp->center, point->coords, sizeof(double) * 2);
+
+  point = ObjectWrap::Unwrap<Point>(NanNew<Object>(rotationalCenterObj));
+  memcpy(cp->rot_center, point->coords, sizeof(double) * 2);
 
   Palette* palette = ObjectWrap::Unwrap<Palette>(NanNew<Object>(paletteObj));
   palette->ClonePalette(&genome.palette);

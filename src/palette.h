@@ -9,22 +9,10 @@ extern "C" {
 #include <flam3.h>
 }
 
+#include "fields.h"
+
 using namespace v8;
 using namespace node;
-
-class Color : public node::ObjectWrap {
-  public:
-    Color(double colors[], int count);
-    ~Color();
-
-    double colors[4];
-
-  private:
-    static NAN_GETTER(GetProperty);
-    static NAN_SETTER(SetProperty);
-
-    double* GetPropertyPtr(const char* name);
-};
 
 class Palette : public node::ObjectWrap {
   public:

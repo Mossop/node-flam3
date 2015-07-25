@@ -40,8 +40,6 @@ class Genome : public node::ObjectWrap {
     static NAN_METHOD(Random);
     static NAN_METHOD(Parse);
 
-    static NAN_GETTER(GetPalette);
-    static NAN_GETTER(GetBackground);
     static NAN_GETTER(GetName);
     static NAN_SETTER(SetName);
 
@@ -61,6 +59,8 @@ class Genome : public node::ObjectWrap {
 
     Persistent<Object> paletteObj;
     Persistent<Object> backgroundObj;
+    Persistent<Object> centerObj;
+    Persistent<Object> rotationalCenterObj;
     flam3_genome genome;
 };
 
