@@ -1,7 +1,9 @@
 #include "fields.h"
 #include "genome.h"
 #include "palette.h"
+#include "transform.h"
 #include <isaac.h>
+#include "includes/genome_properties.h"
 
 int32_t sGenomeCount = 0;
 
@@ -17,7 +19,7 @@ void free_genome(flam3_genome* genome) {
 
 Persistent<Function> Genome::constructor;
 
-genome_property Genome_Properties[] = GENOME_PROPERTIES;
+property_entry Genome_Properties[] = GENOME_PROPERTIES;
 
 Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
   NanScope();
@@ -48,21 +50,25 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
   NanAssignPersistent(rotationalCenterObj, NanObjectWrapHandle(center));
   DEFINE_READONLY_PROPERTY(rotationalCenter, NanObjectWrapHandle(center));
 
+  transforms = new PersistentValueVector<Object>(Isolate::GetCurrent());
+  for (int i = 0; i < genome.num_xforms; i++) {
+    transforms->Append(NanObjectWrapHandle(Transform::NewInstance(&genome.xform[i])));
+  }
+
   jsObj->SetAccessor(NanNew<String>("name"), GetName, SetName,
     Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(DontDelete));
 }
 
 Genome::~Genome() {
   NanDisposePersistent(paletteObj);
+  NanDisposePersistent(backgroundObj);
+  NanDisposePersistent(centerObj);
+  NanDisposePersistent(rotationalCenterObj);
+  delete transforms;
   free_genome(genome);
 
   sGenomeCount--;
 }
-
-/*void Genome::Init(Handle<Object> jsObj) {
-  // double center[2];
-  // double rot_center[2];
-}*/
 
 NAN_GETTER(Genome::GetName) {
   NanScope();
@@ -203,11 +209,14 @@ void Genome::Export(Handle<Object> exports) {
 
   NODE_SET_PROTOTYPE_METHOD(tpl, "toXMLString", ToXMLString);
   NODE_SET_PROTOTYPE_METHOD(tpl, "render", Render);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getTransform", GetTransform);
 
   Local<ObjectTemplate> objtpl = tpl->InstanceTemplate();
   objtpl->SetInternalFieldCount(1);
   objtpl->SetNamedPropertyHandler(GetProperty, SetProperty, QueryProperty,
     DeleteProperty, EnumerateProperties);
+  objtpl->SetAccessor(NanNew<String>("transformCount"), GetTransformCount, NULL,
+    Local<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
   NanAssignPersistent(constructor, tpl->GetFunction());
   exports->Set(NanNew<String>("Genome"), tpl->GetFunction());
@@ -502,4 +511,30 @@ NAN_METHOD(Genome::Render) {
 
   NanAsyncQueueWorker(new Renderer(callback, obj, options));
   NanReturnUndefined();
+}
+
+NAN_GETTER(Genome::GetTransformCount) {
+  NanScope();
+
+  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
+  NanReturnValue(NanNew<Number>(obj->transforms->Size()));
+}
+
+NAN_METHOD(Genome::GetTransform) {
+  NanScope();
+
+  if (args.Length() < 1 || !args[0]->IsUint32()) {
+    NanThrowTypeError("Must pass an index");
+    NanReturnUndefined();
+  }
+
+  uint32_t index = args[0]->Uint32Value();
+  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
+
+  if (index >= obj->transforms->Size()) {
+    NanThrowTypeError("Must pass an index between 0 and transformCount");
+    NanReturnUndefined();
+  }
+
+  NanReturnValue(obj->transforms->Get(index));
 }

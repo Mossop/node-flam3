@@ -17,10 +17,15 @@
       "type": "none",
       "actions": [
         {
-          "action_name": "generate",
+          "action_name": "generate-genome-properties",
           "inputs": [ "src/write_header.py", "src/genome_properties" ],
-          "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/properties.h" ],
-          "action": [ "python", "src/write_header.py", "src/genome_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/properties.h" ]
+          "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/genome_properties.h" ],
+          "action": [ "python", "src/write_header.py", "src/genome_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/genome_properties.h", "flam3_genome", "GENOME" ]
+        }, {
+          "action_name": "generate-xform-properties",
+          "inputs": [ "src/write_header.py", "src/xform_properties" ],
+          "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/xform_properties.h" ],
+          "action": [ "python", "src/write_header.py", "src/xform_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/xform_properties.h", "flam3_xform", "XFORM" ]
         }
       ]
     }, {
@@ -29,6 +34,7 @@
         "src/module.cc",
         "src/fields.cc",
         "src/genome.cc",
+        "src/transform.cc",
         "src/palette.cc"
       ],
       "dependencies": [ "deps/libflam3.gyp:libflam3",

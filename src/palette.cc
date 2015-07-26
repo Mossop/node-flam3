@@ -76,7 +76,7 @@ NAN_INDEX_DELETER(Palette::DeleteIndex) {
 NAN_INDEX_ENUMERATOR(Palette::EnumerateIndex) {
   NanScope();
 
-  Local<Array> results = NanNew<Array>(GENOME_PROPERTY_COUNT);
+  Local<Array> results = NanNew<Array>(256);
   for (int i = 0; i < 256; i++) {
     results->Set(i, NanNew<Integer>(i));
   }

@@ -5,6 +5,17 @@
 #include <node_object_wrap.h>
 #include <nan.h>
 
+enum Property_Type {
+  INT = 0,
+  DOUBLE = 1
+};
+
+typedef struct {
+  const char* name;
+  Property_Type type;
+  size_t offset;
+} property_entry;
+
 NAN_GETTER(ValuePropertyGetter);
 
 #define DEFINE_READONLY_PROPERTY(name, value) \

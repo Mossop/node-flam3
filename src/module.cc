@@ -7,6 +7,7 @@ extern "C" {
 }
 
 #include "genome.h"
+#include "transform.h"
 #include "palette.h"
 
 using namespace v8;
@@ -57,6 +58,7 @@ void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
   exports->SetAccessor(NanNew<String>("genomeCount"), GenomeCountGetter);
 
   Genome::Export(exports);
+  Transform::Export(exports);
   Palette::Export(exports);
 }
 

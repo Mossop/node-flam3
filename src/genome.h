@@ -1,10 +1,10 @@
 #ifndef GENOME_H
 #define GENOME_H
 
+#include <v8-util.h>
 #include <node.h>
 #include <node_object_wrap.h>
 #include <nan.h>
-#include "includes/properties.h"
 
 extern "C" {
 #include <flam3.h>
@@ -12,19 +12,6 @@ extern "C" {
 
 using namespace v8;
 using namespace node;
-
-class Palette;
-
-enum Property_Type {
-  INT = 0,
-  DOUBLE = 1
-};
-
-typedef struct {
-  const char* name;
-  Property_Type type;
-  size_t offset;
-} genome_property;
 
 class Genome : public node::ObjectWrap {
   public:
@@ -55,12 +42,16 @@ class Genome : public node::ObjectWrap {
     static NAN_METHOD(ToXMLString);
     static NAN_METHOD(Render);
 
+    static NAN_METHOD(GetTransform);
+    static NAN_GETTER(GetTransformCount);
+
     static Persistent<Function> constructor;
 
     Persistent<Object> paletteObj;
     Persistent<Object> backgroundObj;
     Persistent<Object> centerObj;
     Persistent<Object> rotationalCenterObj;
+    PersistentValueVector<Object>* transforms;
     flam3_genome genome;
 };
 

@@ -3,7 +3,6 @@ int interpolation
 int interpolation_type
 int palette_interpolation
 double hsv_rgb_palette_blend
-int genome_index
 int symmetry
 int palette_index
 double brightness
