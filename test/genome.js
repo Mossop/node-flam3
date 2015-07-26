@@ -234,6 +234,24 @@ describe("genome", () => {
         global.gc();
         should(flam3.genomeCount).equal(count);
       });
+
+      it("transform references don't hold the genome alive", () => {
+        global.gc();
+        global.gc();
+        global.gc();
+
+        let count = flam3.genomeCount;
+        let g = flam3.Genome.createRandom();
+        should(flam3.genomeCount).equal(count + 1);
+
+        should(g.transformCount).be.greaterThan(0);
+        let transform = g.getTransform(0);
+        g = null;
+        global.gc();
+        global.gc();
+        global.gc();
+        should(flam3.genomeCount).equal(count);
+      });
     });
   }
 });

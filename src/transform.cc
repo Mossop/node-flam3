@@ -7,14 +7,17 @@ Persistent<Function> Transform::constructor;
 property_entry Xform_Properties[] = XFORM_PROPERTIES;
 
 Transform::Transform(Handle<Object> jsObj, flam3_xform* xform) {
+  assert(xform);
   NanScope();
 
   Wrap(jsObj);
 
-  this->xform = xform;
+  memset(&this->xform, 0, sizeof(flam3_xform));
+  flam3_copy_xform(&this->xform, xform);
 }
 
 Transform::~Transform() {
+  flam3_delete_motion_elements(&this->xform);
 }
 
 NAN_PROPERTY_GETTER(Transform::GetProperty) {
@@ -25,7 +28,7 @@ NAN_PROPERTY_GETTER(Transform::GetProperty) {
   NanUtf8String name(property);
   for (int i = 0; i < XFORM_PROPERTY_COUNT; i++) {
     if (strcmp(*name, Xform_Properties[i].name) == 0) {
-      char* field = reinterpret_cast<char*>(obj->xform) + Xform_Properties[i].offset;
+      char* field = reinterpret_cast<char*>(&obj->xform) + Xform_Properties[i].offset;
 
       if (Xform_Properties[i].type == DOUBLE) {
         NanReturnValue(NanNew<Number>(*(reinterpret_cast<double*>(field))));
@@ -48,7 +51,7 @@ NAN_PROPERTY_SETTER(Transform::SetProperty) {
   NanUtf8String name(property);
   for (int i = 0; i < XFORM_PROPERTY_COUNT; i++) {
     if (strcmp(*name, Xform_Properties[i].name) == 0) {
-      char* field = reinterpret_cast<char*>(obj->xform) + Xform_Properties[i].offset;
+      char* field = reinterpret_cast<char*>(&obj->xform) + Xform_Properties[i].offset;
 
       if (Xform_Properties[i].type == DOUBLE) {
         *(reinterpret_cast<double*>(field)) = value->NumberValue();
@@ -104,6 +107,10 @@ NAN_PROPERTY_ENUMERATOR(Transform::EnumerateProperties) {
   NanReturnValue(results);
 }
 
+void Transform::CloneTransform(flam3_xform* xform) {
+  flam3_copy_xform(xform, &this->xform);
+}
+
 void Transform::Export(Handle<Object> exports) {
   NanScope();
 
@@ -121,19 +128,11 @@ void Transform::Export(Handle<Object> exports) {
 }
 
 Transform* Transform::NewInstance(flam3_xform* xform) {
+  assert(xform);
   NanScope();
 
-  Local<Value> jsObj;
-
-  if (xform) {
-    Local<Value> argv[] = { NanNew<External>(xform) };
-    jsObj = NanNew<Function>(constructor)->NewInstance(1, argv);
-  }
-  else {
-    Local<Value> argv[0];
-    jsObj = NanNew<Function>(constructor)->NewInstance(0, argv);
-  }
-
+  Local<Value> argv[] = { NanNew<External>(xform) };
+  Local<Value> jsObj = NanNew<Function>(constructor)->NewInstance(1, argv);
   Transform* transform = ObjectWrap::Unwrap<Transform>(jsObj->ToObject());
   return transform;
 }
@@ -143,15 +142,19 @@ NAN_METHOD(Transform::New) {
 
   flam3_xform* xform = NULL;
 
+  if (args.Length() == 0) {
+    NanThrowTypeError("Transforms cannot be created from JavaScript.");
+    NanReturnUndefined();
+  }
+
   if (args.Length() >= 1) {
     if (!args[0]->IsExternal()) {
       NanThrowTypeError("Argument 0 was of an unexpected type.");
       NanReturnUndefined();
     }
-
-    xform = reinterpret_cast<flam3_xform*>(External::Cast(*args[0])->Value());
   }
 
+  xform = reinterpret_cast<flam3_xform*>(External::Cast(*args[0])->Value());
   Transform* transform;
 
   if (args.IsConstructCall()) {

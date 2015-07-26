@@ -19,6 +19,8 @@ class Transform : public node::ObjectWrap {
     static Transform* NewInstance(flam3_xform* cp);
     static void Export(Handle<v8::Object> exports);
 
+    void CloneTransform(flam3_xform* xform);
+
   private:
     ~Transform();
 
@@ -32,7 +34,7 @@ class Transform : public node::ObjectWrap {
 
     static Persistent<Function> constructor;
 
-    flam3_xform* xform;
+    flam3_xform xform;
 };
 
 #endif

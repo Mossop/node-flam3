@@ -193,6 +193,12 @@ void Genome::CloneGenome(flam3_genome* cp) {
 
   Palette* palette = ObjectWrap::Unwrap<Palette>(NanNew<Object>(paletteObj));
   palette->ClonePalette(&genome.palette);
+
+  assert((int)transforms->Size() == cp->num_xforms);
+  for (size_t i = 0; i < transforms->Size(); i++) {
+    Transform* transform = ObjectWrap::Unwrap<Transform>(transforms->Get(i));
+    transform->CloneTransform(&cp->xform[i]);
+  }
 }
 
 void Genome::Export(Handle<Object> exports) {
