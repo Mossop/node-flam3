@@ -50,10 +50,11 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
   NanAssignPersistent(rotationalCenterObj, NanObjectWrapHandle(center));
   DEFINE_READONLY_PROPERTY(rotationalCenter, NanObjectWrapHandle(center));
 
-  transforms = new PersistentValueVector<Object>(Isolate::GetCurrent());
+  Local<Array> transforms = NanNew<Array>(genome.num_xforms);
   for (int i = 0; i < genome.num_xforms; i++) {
-    transforms->Append(NanObjectWrapHandle(Transform::NewInstance(&genome.xform[i])));
+    transforms->Set(i, NanObjectWrapHandle(Transform::NewInstance(this, &genome.xform[i])));
   }
+  jsObj->SetHiddenValue(NanNew<String>("flam3::Genome::transforms"), transforms);
 
   jsObj->SetAccessor(NanNew<String>("name"), GetName, SetName,
     Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(DontDelete));
@@ -64,7 +65,6 @@ Genome::~Genome() {
   NanDisposePersistent(backgroundObj);
   NanDisposePersistent(centerObj);
   NanDisposePersistent(rotationalCenterObj);
-  delete transforms;
   free_genome(genome);
 
   sGenomeCount--;
@@ -193,12 +193,6 @@ void Genome::CloneGenome(flam3_genome* cp) {
 
   Palette* palette = ObjectWrap::Unwrap<Palette>(NanNew<Object>(paletteObj));
   palette->ClonePalette(&genome.palette);
-
-  assert((int)transforms->Size() == cp->num_xforms);
-  for (size_t i = 0; i < transforms->Size(); i++) {
-    Transform* transform = ObjectWrap::Unwrap<Transform>(transforms->Get(i));
-    transform->CloneTransform(&cp->xform[i]);
-  }
 }
 
 void Genome::Export(Handle<Object> exports) {
@@ -522,8 +516,8 @@ NAN_METHOD(Genome::Render) {
 NAN_GETTER(Genome::GetTransformCount) {
   NanScope();
 
-  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
-  NanReturnValue(NanNew<Number>(obj->transforms->Size()));
+  Local<Array> transforms = Local<Array>::Cast(args.Holder()->GetHiddenValue(NanNew<String>("flam3::Genome::transforms")));
+  NanReturnValue(NanNew<Number>(transforms->Length()));
 }
 
 NAN_METHOD(Genome::GetTransform) {
@@ -535,12 +529,12 @@ NAN_METHOD(Genome::GetTransform) {
   }
 
   uint32_t index = args[0]->Uint32Value();
-  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
+  Local<Array> transforms = Local<Array>::Cast(args.Holder()->GetHiddenValue(NanNew<String>("flam3::Genome::transforms")));
 
-  if (index >= obj->transforms->Size()) {
+  if (index >= transforms->Length()) {
     NanThrowTypeError("Must pass an index between 0 and transformCount");
     NanReturnUndefined();
   }
 
-  NanReturnValue(obj->transforms->Get(index));
+  NanReturnValue(transforms->Get(index));
 }

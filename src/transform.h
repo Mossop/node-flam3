@@ -9,17 +9,17 @@ extern "C" {
 #include <flam3.h>
 }
 
+#include "genome.h"
+
 using namespace v8;
 using namespace node;
 
 class Transform : public node::ObjectWrap {
   public:
-    Transform(Handle<Object> jsObj, flam3_xform* xform);
+    Transform(Handle<Object> jsObj, Genome* genome, flam3_xform* xform);
 
-    static Transform* NewInstance(flam3_xform* cp);
+    static Transform* NewInstance(Genome* genome, flam3_xform* cp);
     static void Export(Handle<v8::Object> exports);
-
-    void CloneTransform(flam3_xform* xform);
 
   private:
     ~Transform();
@@ -34,7 +34,7 @@ class Transform : public node::ObjectWrap {
 
     static Persistent<Function> constructor;
 
-    flam3_xform xform;
+    flam3_xform* xform;
 };
 
 #endif

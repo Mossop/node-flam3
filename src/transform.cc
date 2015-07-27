@@ -6,18 +6,17 @@ Persistent<Function> Transform::constructor;
 
 property_entry Xform_Properties[] = XFORM_PROPERTIES;
 
-Transform::Transform(Handle<Object> jsObj, flam3_xform* xform) {
+Transform::Transform(Handle<Object> jsObj, Genome* genome, flam3_xform* xform) {
   assert(xform);
   NanScope();
 
   Wrap(jsObj);
 
-  memset(&this->xform, 0, sizeof(flam3_xform));
-  flam3_copy_xform(&this->xform, xform);
+  this->xform = xform;
+  jsObj->SetHiddenValue(NanNew<String>("flam3::Genome"), NanObjectWrapHandle(genome));
 }
 
 Transform::~Transform() {
-  flam3_delete_motion_elements(&this->xform);
 }
 
 NAN_PROPERTY_GETTER(Transform::GetProperty) {
@@ -28,7 +27,7 @@ NAN_PROPERTY_GETTER(Transform::GetProperty) {
   NanUtf8String name(property);
   for (int i = 0; i < XFORM_PROPERTY_COUNT; i++) {
     if (strcmp(*name, Xform_Properties[i].name) == 0) {
-      char* field = reinterpret_cast<char*>(&obj->xform) + Xform_Properties[i].offset;
+      char* field = reinterpret_cast<char*>(obj->xform) + Xform_Properties[i].offset;
 
       if (Xform_Properties[i].type == DOUBLE) {
         NanReturnValue(NanNew<Number>(*(reinterpret_cast<double*>(field))));
@@ -51,7 +50,7 @@ NAN_PROPERTY_SETTER(Transform::SetProperty) {
   NanUtf8String name(property);
   for (int i = 0; i < XFORM_PROPERTY_COUNT; i++) {
     if (strcmp(*name, Xform_Properties[i].name) == 0) {
-      char* field = reinterpret_cast<char*>(&obj->xform) + Xform_Properties[i].offset;
+      char* field = reinterpret_cast<char*>(obj->xform) + Xform_Properties[i].offset;
 
       if (Xform_Properties[i].type == DOUBLE) {
         *(reinterpret_cast<double*>(field)) = value->NumberValue();
@@ -107,10 +106,6 @@ NAN_PROPERTY_ENUMERATOR(Transform::EnumerateProperties) {
   NanReturnValue(results);
 }
 
-void Transform::CloneTransform(flam3_xform* xform) {
-  flam3_copy_xform(xform, &this->xform);
-}
-
 void Transform::Export(Handle<Object> exports) {
   NanScope();
 
@@ -127,12 +122,12 @@ void Transform::Export(Handle<Object> exports) {
   exports->Set(NanNew<String>("Transform"), tpl->GetFunction());
 }
 
-Transform* Transform::NewInstance(flam3_xform* xform) {
+Transform* Transform::NewInstance(Genome* genome, flam3_xform* xform) {
   assert(xform);
   NanScope();
 
-  Local<Value> argv[] = { NanNew<External>(xform) };
-  Local<Value> jsObj = NanNew<Function>(constructor)->NewInstance(1, argv);
+  Local<Value> argv[] = { NanNew<External>(genome), NanNew<External>(xform) };
+  Local<Value> jsObj = NanNew<Function>(constructor)->NewInstance(2, argv);
   Transform* transform = ObjectWrap::Unwrap<Transform>(jsObj->ToObject());
   return transform;
 }
@@ -140,30 +135,32 @@ Transform* Transform::NewInstance(flam3_xform* xform) {
 NAN_METHOD(Transform::New) {
   NanScope();
 
-  flam3_xform* xform = NULL;
-
-  if (args.Length() == 0) {
+  if (args.Length() != 2) {
     NanThrowTypeError("Transforms cannot be created from JavaScript.");
     NanReturnUndefined();
   }
 
-  if (args.Length() >= 1) {
-    if (!args[0]->IsExternal()) {
-      NanThrowTypeError("Argument 0 was of an unexpected type.");
-      NanReturnUndefined();
-    }
+  if (!args[0]->IsExternal()) {
+    NanThrowTypeError("Argument 0 was of an unexpected type.");
+    NanReturnUndefined();
   }
 
-  xform = reinterpret_cast<flam3_xform*>(External::Cast(*args[0])->Value());
+  if (!args[1]->IsExternal()) {
+    NanThrowTypeError("Argument 0 was of an unexpected type.");
+    NanReturnUndefined();
+  }
+
+  Genome* genome = reinterpret_cast<Genome*>(External::Cast(*args[0])->Value());
+  flam3_xform* xform = reinterpret_cast<flam3_xform*>(External::Cast(*args[1])->Value());
   Transform* transform;
 
   if (args.IsConstructCall()) {
     // Invoked as constructor: `new Transform(...)`
-    transform = new Transform(args.This(), xform);
+    transform = new Transform(args.This(), genome, xform);
   }
   else {
     // Invoked as plain function `Transform(...)`, turn into construct call.
-    transform = NewInstance(xform);
+    transform = NewInstance(genome, xform);
   }
 
   NanReturnValue(NanObjectWrapHandle(transform));

@@ -235,7 +235,7 @@ describe("genome", () => {
         should(flam3.genomeCount).equal(count);
       });
 
-      it("transform references don't hold the genome alive", () => {
+      it("transform references hold the genome alive", () => {
         global.gc();
         global.gc();
         global.gc();
@@ -247,6 +247,12 @@ describe("genome", () => {
         should(g.transformCount).be.greaterThan(0);
         let transform = g.getTransform(0);
         g = null;
+        global.gc();
+        global.gc();
+        global.gc();
+        should(flam3.genomeCount).equal(count + 1);
+
+        transform = null;
         global.gc();
         global.gc();
         global.gc();

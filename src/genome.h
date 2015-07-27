@@ -51,7 +51,6 @@ class Genome : public node::ObjectWrap {
     Persistent<Object> backgroundObj;
     Persistent<Object> centerObj;
     Persistent<Object> rotationalCenterObj;
-    PersistentValueVector<Object>* transforms;
     flam3_genome genome;
 };
 
