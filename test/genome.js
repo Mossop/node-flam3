@@ -101,18 +101,13 @@ function checkGenome(g) {
   });
 
   it("palette should look sane", () => {
-    should(g.palette).be.instanceOf(flam3.Palette);
+    should(g.palette).be.instanceOf(Array);
     should(g.palette).have.length(256);
     should(g.palette[0]).have.properties([ "red", "green", "blue", "alpha" ]);
   });
 
   it("palette should not be all white", () => {
-    let sum = 0;
-    for (let i = 0; i < g.palette.length; i++) {
-      let entry = g.palette[i];
-      sum += entry.red + entry.green + entry.blue + entry.alpha;
-    }
-
+    let sum = g.palette.reduce((p, c) => p + c.red + c.green + c.blue + c.alpha, 0);
     should(sum).be.lessThan(256 * 4);
   });
 
@@ -121,13 +116,13 @@ function checkGenome(g) {
     should(g.palette[0]).equal(g.palette[0]);
   });
 
-  it("cannot change palette", () => {
-    should(delete g.palette).be.false();
-    should(g).have.property("palette");
+  it("can change palette", () => {
+    should(delete g.palette).be.true();
+    should(g).not.have.property("palette");
 
-    should.throws(() => g.palette.length = 5, TypeError, "Cannot assign to read only property");
-    should.throws(() => delete g.palette.length, TypeError, "Cannot delete property");
-    should.throws(() => delete g.palette[0].red, TypeError, "Cannot delete property");
+    let parsed = flam3.Genome.fromXMLString(g.toXMLString(), "stdin")[0];
+    let sum = parsed.palette.reduce((p, c) => p + c.red + c.green + c.blue + c.alpha, 0);
+    should(sum).equal(256 * 4);
   });
 
   it("cannot delete properties", () => {

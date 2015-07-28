@@ -5,6 +5,10 @@
 #include <node_object_wrap.h>
 #include <nan.h>
 
+extern "C" {
+#include <flam3.h>
+}
+
 using namespace v8;
 
 enum Property_Type {
@@ -40,24 +44,13 @@ void GetColorField(Handle<Object> obj, const char * property, rgb_t color);
 void SetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color);
 void GetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color);
 
+void SetPaletteField(Handle<Object> obj, const char * property, flam3_palette palette);
+void GetPaletteField(Handle<Object> obj, const char * property, flam3_palette palette);
+
 NAN_GETTER(ValuePropertyGetter);
 
 #define DEFINE_READONLY_PROPERTY(name, value) \
   NanObjectWrapHandle(this)->SetAccessor(NanNew<String>(#name), \
     ValuePropertyGetter, NULL, value, DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
-
-class Color : public node::ObjectWrap {
-  public:
-    Color(double colors[], int count);
-    ~Color();
-
-    double colors[4];
-
-  private:
-    static NAN_GETTER(GetProperty);
-    static NAN_SETTER(SetProperty);
-
-    double* GetPropertyPtr(const char* name);
-};
 
 #endif

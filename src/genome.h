@@ -47,7 +47,6 @@ class Genome : public node::ObjectWrap {
 
     static Persistent<Function> constructor;
 
-    Persistent<Object> paletteObj;
     flam3_genome genome;
 };
 

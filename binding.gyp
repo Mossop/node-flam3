@@ -34,8 +34,7 @@
         "src/module.cc",
         "src/fields.cc",
         "src/genome.cc",
-        "src/transform.cc",
-        "src/palette.cc"
+        "src/transform.cc"
       ],
       "dependencies": [ "deps/libflam3.gyp:libflam3",
                         "generate-properties",

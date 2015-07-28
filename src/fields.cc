@@ -141,119 +141,42 @@ void GetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color)
   GetDoubleField(prop, "alpha", color[3]);
 }
 
-NAN_GETTER(DoublePropertyGetter) {
+void SetPaletteField(Handle<Object> obj, const char * property, flam3_palette palette) {
   NanScope();
 
-  Local<External> ptr = Local<External>::Cast(args.Data());
-  double* field = reinterpret_cast<double*>(ptr->Value());
+  Local<Array> prop = NanNew<Array>(256);
+  char index[4];
+  for (int i = 0; i < 256; i++) {
+    sprintf(index, "%d", i);
+    SetColorAlphaField(prop, index, palette[i].color);
+  }
 
-  NanReturnValue(NanNew<Number>(*field));
+  obj->Set(NanNew<String>(property), prop);
 }
 
-NAN_SETTER(DoublePropertySetter) {
+void GetPaletteField(Handle<Object> obj, const char * property, flam3_palette palette) {
   NanScope();
 
-  Local<External> ptr = Local<External>::Cast(args.Data());
-  double* field = reinterpret_cast<double*>(ptr->Value());
+  // Initialize to all white
+  for (int i = 0; i < 256; i++) {
+    SetColorValue(palette[i].color, 1, 1, 1, 1);
+  }
 
-  *field = value->NumberValue();
-}
+  Local<Value> p = obj->Get(NanNew<String>(property));
+  if (p.IsEmpty() || !p->IsArray()) {
+    return;
+  }
+  Local<Object> prop = p->ToObject();
 
-NAN_GETTER(IntPropertyGetter) {
-  NanScope();
-
-  Local<External> ptr = Local<External>::Cast(args.Data());
-  int* field = reinterpret_cast<int*>(ptr->Value());
-
-  NanReturnValue(NanNew<Number>(*field));
-}
-
-NAN_SETTER(IntPropertySetter) {
-  NanScope();
-
-  Local<External> ptr = Local<External>::Cast(args.Data());
-  int* field = reinterpret_cast<int*>(ptr->Value());
-
-  *field = value->IntegerValue();
+  char index[4];
+  for (int i = 0; i < 256; i++) {
+    sprintf(index, "%d", i);
+    GetColorAlphaField(prop, index, palette[i].color);
+  }
 }
 
 NAN_GETTER(ValuePropertyGetter) {
   NanScope();
 
   NanReturnValue(args.Data());
-}
-
-Color::Color(double colors[], int count) {
-  NanScope();
-
-  Local<ObjectTemplate> tpl = NanNew<ObjectTemplate>();
-  tpl->SetInternalFieldCount(1);
-
-  Local<Object> jsObj = tpl->NewInstance();
-  Wrap(jsObj);
-
-  memcpy(this->colors, colors, sizeof(double) * count);
-
-  jsObj->SetAccessor(NanNew<String>("red"), GetProperty, SetProperty,
-    Local<Value>(), DEFAULT, DontDelete);
-  jsObj->SetAccessor(NanNew<String>("green"), GetProperty, SetProperty,
-    Local<Value>(), DEFAULT, DontDelete);
-  jsObj->SetAccessor(NanNew<String>("blue"), GetProperty, SetProperty,
-    Local<Value>(), DEFAULT, DontDelete);
-
-  if (count >= 4) {
-    jsObj->SetAccessor(NanNew<String>("alpha"), GetProperty, SetProperty,
-      Local<Value>(), DEFAULT, DontDelete);
-  }
-  else {
-    this->colors[3] = -1;
-  }
-}
-
-Color::~Color() {
-}
-
-double* Color::GetPropertyPtr(const char* name) {
-  if (strcmp("red", name) == 0) {
-    return &colors[0];
-  }
-  else if (strcmp("green", name) == 0) {
-    return &colors[1];
-  }
-  else if (strcmp("blue", name) == 0) {
-    return &colors[2];
-  }
-  else if (strcmp("alpha", name) == 0 && colors[3] >= 0) {
-    return &colors[3];
-  }
-  else {
-    return NULL;
-  }
-}
-
-NAN_GETTER(Color::GetProperty) {
-  NanScope();
-
-  NanUtf8String name(property);
-  Color* entry = ObjectWrap::Unwrap<Color>(args.Holder());
-
-  double* result = entry->GetPropertyPtr(*name);
-  if (result) {
-    NanReturnValue(NanNew<Number>(*result));
-  }
-
-  NanReturnUndefined();
-}
-
-NAN_SETTER(Color::SetProperty) {
-  NanScope();
-
-  NanUtf8String name(property);
-  Color* entry = ObjectWrap::Unwrap<Color>(args.Holder());
-
-  double* result = entry->GetPropertyPtr(*name);
-  if (result) {
-    *result = value->NumberValue();
-    return;
-  }
 }

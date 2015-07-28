@@ -8,7 +8,6 @@ extern "C" {
 
 #include "genome.h"
 #include "transform.h"
-#include "palette.h"
 
 using namespace v8;
 
@@ -59,7 +58,6 @@ void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
 
   Genome::Export(exports);
   Transform::Export(exports);
-  Palette::Export(exports);
 }
 
 NODE_MODULE(flam3_bindings, Init)

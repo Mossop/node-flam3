@@ -1,6 +1,5 @@
 #include "fields.h"
 #include "genome.h"
-#include "palette.h"
 #include "transform.h"
 #include <isaac.h>
 #include "includes/genome_properties.h"
@@ -34,11 +33,8 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
     flam3_copy(&genome, cp);
   }
 
-  Palette* plt = Palette::NewInstance(&genome.palette);
-  NanAssignPersistent(paletteObj, NanObjectWrapHandle(plt));
-  DEFINE_READONLY_PROPERTY(palette, NanObjectWrapHandle(plt));
-
   // Define child objects
+  SetPaletteField(jsObj, "palette", genome.palette);
   SetColorField(jsObj, "background", genome.background);
   SetPointField(jsObj, "center", genome.center);
   SetPointField(jsObj, "rotationalCenter", genome.rot_center);
@@ -59,7 +55,6 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
 }
 
 Genome::~Genome() {
-  NanDisposePersistent(paletteObj);
   free_genome(genome);
 
   sGenomeCount--;
@@ -177,12 +172,10 @@ void Genome::CloneGenome(flam3_genome* cp) {
   clear_cp(cp, flam3_defaults_on);
   flam3_copy(cp, &genome);
 
+  GetPaletteField(NanObjectWrapHandle(this), "palette", cp->palette);
   GetColorField(NanObjectWrapHandle(this), "background", cp->background);
   GetPointField(NanObjectWrapHandle(this), "center", cp->center);
   GetPointField(NanObjectWrapHandle(this), "rotationalCenter", cp->rot_center);
-
-  Palette* palette = ObjectWrap::Unwrap<Palette>(NanNew<Object>(paletteObj));
-  palette->ClonePalette(&genome.palette);
 }
 
 void Genome::Export(Handle<Object> exports) {
