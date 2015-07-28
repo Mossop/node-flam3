@@ -35,6 +35,21 @@ function checkGenome(g) {
     should(parsed.background.red).equal(0.5);
     should(parsed.background.green).equal(0);
     should(parsed.background.blue).equal(0.6);
+
+    delete parsed.background.red;
+    should(parsed.background).not.have.property("red");
+    parsed = flam3.Genome.fromXMLString(parsed.toXMLString(), "stdin")[0];
+
+    should(parsed.background.red).equal(0);
+    should(parsed.background.green).equal(0);
+    should(parsed.background.blue).equal(0.6);
+
+    delete parsed.background;
+    parsed = flam3.Genome.fromXMLString(parsed.toXMLString(), "stdin")[0];
+
+    should(parsed.background.red).equal(0);
+    should(parsed.background.green).equal(0);
+    should(parsed.background.blue).equal(0);
   });
 
   it("can access centers", () => {

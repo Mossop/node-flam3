@@ -38,9 +38,15 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
   NanAssignPersistent(paletteObj, NanObjectWrapHandle(plt));
   DEFINE_READONLY_PROPERTY(palette, NanObjectWrapHandle(plt));
 
+  // Define child objects
   SetColorField(jsObj, "background", genome.background);
   SetPointField(jsObj, "center", genome.center);
   SetPointField(jsObj, "rotationalCenter", genome.rot_center);
+
+  // Set sane defaults in case child objects are deleted or invalid
+  SetColorValue(genome.background, 0, 0, 0);
+  SetPointValue(genome.center, 0, 0);
+  SetPointValue(genome.rot_center, 0, 0);
 
   Local<Array> transforms = NanNew<Array>(genome.num_xforms);
   for (int i = 0; i < genome.num_xforms; i++) {

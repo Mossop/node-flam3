@@ -28,9 +28,12 @@ void GetIntField(Handle<Object> obj, const char * property, int & value);
 void SetDoubleField(Handle<Object> obj, const char * property, double & value);
 void GetDoubleField(Handle<Object> obj, const char * property, double & value);
 
+void SetPointValue(point_t point, double x, double y);
 void SetPointField(Handle<Object> obj, const char * property, point_t point);
 void GetPointField(Handle<Object> obj, const char * property, point_t point);
 
+void SetColorValue(rgb_t color, double red, double green, double blue);
+void SetColorValue(rgba_t color, double red, double green, double blue, double alpha);
 void SetColorField(Handle<Object> obj, const char * property, rgb_t color);
 void GetColorField(Handle<Object> obj, const char * property, rgb_t color);
 

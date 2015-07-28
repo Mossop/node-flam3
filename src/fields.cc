@@ -48,6 +48,11 @@ void GetDoubleField(Handle<Object> obj, const char * property, double & value) {
   value = prop->NumberValue();
 }
 
+void SetPointValue(point_t point, double x, double y) {
+  point[0] = x;
+  point[1] = y;
+}
+
 void SetPointField(Handle<Object> obj, const char * property, point_t point) {
   NanScope();
 
@@ -69,6 +74,19 @@ void GetPointField(Handle<Object> obj, const char * property, point_t point) {
 
   GetDoubleField(prop, "x", point[0]);
   GetDoubleField(prop, "y", point[1]);
+}
+
+void SetColorValue(rgb_t color, double red, double green, double blue) {
+  color[0] = red;
+  color[1] = green;
+  color[2] = blue;
+}
+
+void SetColorValue(rgba_t color, double red, double green, double blue, double alpha) {
+  color[0] = red;
+  color[1] = green;
+  color[2] = blue;
+  color[3] = alpha;
 }
 
 void SetColorField(Handle<Object> obj, const char * property, rgb_t color) {
