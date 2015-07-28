@@ -38,23 +38,15 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
   NanAssignPersistent(paletteObj, NanObjectWrapHandle(plt));
   DEFINE_READONLY_PROPERTY(palette, NanObjectWrapHandle(plt));
 
-  Color* color = new Color(genome.background, 3);
-  NanAssignPersistent(backgroundObj, NanObjectWrapHandle(color));
-  DEFINE_READONLY_PROPERTY(background, NanObjectWrapHandle(color));
-
-  Point* center = new Point(genome.center);
-  NanAssignPersistent(centerObj, NanObjectWrapHandle(center));
-  DEFINE_READONLY_PROPERTY(center, NanObjectWrapHandle(center));
-
-  center = new Point(genome.rot_center);
-  NanAssignPersistent(rotationalCenterObj, NanObjectWrapHandle(center));
-  DEFINE_READONLY_PROPERTY(rotationalCenter, NanObjectWrapHandle(center));
+  SetColorField(jsObj, "background", genome.background);
+  SetPointField(jsObj, "center", genome.center);
+  SetPointField(jsObj, "rotationalCenter", genome.rot_center);
 
   Local<Array> transforms = NanNew<Array>(genome.num_xforms);
   for (int i = 0; i < genome.num_xforms; i++) {
     transforms->Set(i, NanObjectWrapHandle(Transform::NewInstance(this, &genome.xform[i])));
   }
-  jsObj->SetHiddenValue(NanNew<String>("flam3::Genome::transforms"), transforms);
+  jsObj->SetHiddenValue(NanNew<String>("flam3::transforms"), transforms);
 
   jsObj->SetAccessor(NanNew<String>("name"), GetName, SetName,
     Handle<Value>(), DEFAULT, static_cast<PropertyAttribute>(DontDelete));
@@ -62,9 +54,6 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
 
 Genome::~Genome() {
   NanDisposePersistent(paletteObj);
-  NanDisposePersistent(backgroundObj);
-  NanDisposePersistent(centerObj);
-  NanDisposePersistent(rotationalCenterObj);
   free_genome(genome);
 
   sGenomeCount--;
@@ -182,14 +171,9 @@ void Genome::CloneGenome(flam3_genome* cp) {
   clear_cp(cp, flam3_defaults_on);
   flam3_copy(cp, &genome);
 
-  Color* color = ObjectWrap::Unwrap<Color>(NanNew<Object>(backgroundObj));
-  memcpy(cp->background, color->colors, sizeof(double) * 3);
-
-  Point* point = ObjectWrap::Unwrap<Point>(NanNew<Object>(centerObj));
-  memcpy(cp->center, point->coords, sizeof(double) * 2);
-
-  point = ObjectWrap::Unwrap<Point>(NanNew<Object>(rotationalCenterObj));
-  memcpy(cp->rot_center, point->coords, sizeof(double) * 2);
+  GetColorField(NanObjectWrapHandle(this), "background", cp->background);
+  GetPointField(NanObjectWrapHandle(this), "center", cp->center);
+  GetPointField(NanObjectWrapHandle(this), "rotationalCenter", cp->rot_center);
 
   Palette* palette = ObjectWrap::Unwrap<Palette>(NanNew<Object>(paletteObj));
   palette->ClonePalette(&genome.palette);
@@ -516,7 +500,7 @@ NAN_METHOD(Genome::Render) {
 NAN_GETTER(Genome::GetTransformCount) {
   NanScope();
 
-  Local<Array> transforms = Local<Array>::Cast(args.Holder()->GetHiddenValue(NanNew<String>("flam3::Genome::transforms")));
+  Local<Array> transforms = Local<Array>::Cast(args.Holder()->GetHiddenValue(NanNew<String>("flam3::transforms")));
   NanReturnValue(NanNew<Number>(transforms->Length()));
 }
 
@@ -529,7 +513,7 @@ NAN_METHOD(Genome::GetTransform) {
   }
 
   uint32_t index = args[0]->Uint32Value();
-  Local<Array> transforms = Local<Array>::Cast(args.Holder()->GetHiddenValue(NanNew<String>("flam3::Genome::transforms")));
+  Local<Array> transforms = Local<Array>::Cast(args.Holder()->GetHiddenValue(NanNew<String>("flam3::transforms")));
 
   if (index >= transforms->Length()) {
     NanThrowTypeError("Must pass an index between 0 and transformCount");

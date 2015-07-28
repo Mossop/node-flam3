@@ -5,6 +5,8 @@
 #include <node_object_wrap.h>
 #include <nan.h>
 
+using namespace v8;
+
 enum Property_Type {
   INT = 0,
   DOUBLE = 1
@@ -15,6 +17,25 @@ typedef struct {
   Property_Type type;
   size_t offset;
 } property_entry;
+
+typedef double point_t[2];
+typedef double rgb_t[3];
+typedef double rgba_t[4];
+
+void SetIntField(Handle<Object> obj, const char * property, int & value);
+void GetIntField(Handle<Object> obj, const char * property, int & value);
+
+void SetDoubleField(Handle<Object> obj, const char * property, double & value);
+void GetDoubleField(Handle<Object> obj, const char * property, double & value);
+
+void SetPointField(Handle<Object> obj, const char * property, point_t point);
+void GetPointField(Handle<Object> obj, const char * property, point_t point);
+
+void SetColorField(Handle<Object> obj, const char * property, rgb_t color);
+void GetColorField(Handle<Object> obj, const char * property, rgb_t color);
+
+void SetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color);
+void GetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color);
 
 NAN_GETTER(ValuePropertyGetter);
 
@@ -28,20 +49,6 @@ class Color : public node::ObjectWrap {
     ~Color();
 
     double colors[4];
-
-  private:
-    static NAN_GETTER(GetProperty);
-    static NAN_SETTER(SetProperty);
-
-    double* GetPropertyPtr(const char* name);
-};
-
-class Point : public node::ObjectWrap {
-  public:
-    Point(double coords[2]);
-    ~Point();
-
-    double coords[4];
 
   private:
     static NAN_GETTER(GetProperty);

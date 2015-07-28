@@ -6,6 +6,123 @@
 
 using namespace v8;
 
+void SetIntField(Handle<Object> obj, const char * property, int & value) {
+  NanScope();
+
+  obj->Set(NanNew<String>(property), NanNew<Number>(value));
+}
+
+void GetIntField(Handle<Object> obj, const char * property, int & value) {
+  NanScope();
+
+  if (!obj->Has(NanNew<String>(property))) {
+    return;
+  }
+
+  Local<Value> prop = obj->Get(NanNew<String>(property));
+  if (!prop->IsInt32()) {
+    return;
+  }
+
+  value = prop->Int32Value();
+}
+
+void SetDoubleField(Handle<Object> obj, const char * property, double & value) {
+  NanScope();
+
+  obj->Set(NanNew<String>(property), NanNew<Number>(value));
+}
+
+void GetDoubleField(Handle<Object> obj, const char * property, double & value) {
+  NanScope();
+
+  if (!obj->Has(NanNew<String>(property))) {
+    return;
+  }
+
+  Local<Value> prop = obj->Get(NanNew<String>(property));
+  if (!prop->IsNumber()) {
+    return;
+  }
+
+  value = prop->NumberValue();
+}
+
+void SetPointField(Handle<Object> obj, const char * property, point_t point) {
+  NanScope();
+
+  Local<Object> prop = NanNew<Object>();
+  SetDoubleField(prop, "x", point[0]);
+  SetDoubleField(prop, "y", point[1]);
+
+  obj->Set(NanNew<String>(property), prop);
+}
+
+void GetPointField(Handle<Object> obj, const char * property, point_t point) {
+  NanScope();
+
+  Local<Value> p = obj->Get(NanNew<String>(property));
+  if (p.IsEmpty() || !p->IsObject()) {
+    return;
+  }
+  Local<Object> prop = p->ToObject();
+
+  GetDoubleField(prop, "x", point[0]);
+  GetDoubleField(prop, "y", point[1]);
+}
+
+void SetColorField(Handle<Object> obj, const char * property, rgb_t color) {
+  NanScope();
+
+  Local<Object> prop = NanNew<Object>();
+  SetDoubleField(prop, "red", color[0]);
+  SetDoubleField(prop, "green", color[1]);
+  SetDoubleField(prop, "blue", color[2]);
+
+  obj->Set(NanNew<String>(property), prop);
+}
+
+void GetColorField(Handle<Object> obj, const char * property, rgb_t color) {
+  NanScope();
+
+  Local<Value> p = obj->Get(NanNew<String>(property));
+  if (p.IsEmpty() || !p->IsObject()) {
+    return;
+  }
+  Local<Object> prop = p->ToObject();
+
+  GetDoubleField(prop, "red", color[0]);
+  GetDoubleField(prop, "green", color[1]);
+  GetDoubleField(prop, "blue", color[2]);
+}
+
+void SetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color) {
+  NanScope();
+
+  Local<Object> prop = NanNew<Object>();
+  SetDoubleField(prop, "red", color[0]);
+  SetDoubleField(prop, "green", color[1]);
+  SetDoubleField(prop, "blue", color[2]);
+  SetDoubleField(prop, "alpha", color[3]);
+
+  obj->Set(NanNew<String>(property), prop);
+}
+
+void GetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color) {
+  NanScope();
+
+  Local<Value> p = obj->Get(NanNew<String>(property));
+  if (p.IsEmpty() || !p->IsObject()) {
+    return;
+  }
+  Local<Object> prop = p->ToObject();
+
+  GetDoubleField(prop, "red", color[0]);
+  GetDoubleField(prop, "green", color[1]);
+  GetDoubleField(prop, "blue", color[2]);
+  GetDoubleField(prop, "alpha", color[3]);
+}
+
 NAN_GETTER(DoublePropertyGetter) {
   NanScope();
 
@@ -115,65 +232,6 @@ NAN_SETTER(Color::SetProperty) {
 
   NanUtf8String name(property);
   Color* entry = ObjectWrap::Unwrap<Color>(args.Holder());
-
-  double* result = entry->GetPropertyPtr(*name);
-  if (result) {
-    *result = value->NumberValue();
-    return;
-  }
-}
-
-Point::Point(double coords[2]) {
-  NanScope();
-
-  Local<ObjectTemplate> tpl = NanNew<ObjectTemplate>();
-  tpl->SetInternalFieldCount(1);
-
-  Local<Object> jsObj = tpl->NewInstance();
-  Wrap(jsObj);
-
-  memcpy(this->coords, coords, sizeof(double) * 2);
-
-  jsObj->SetAccessor(NanNew<String>("x"), GetProperty, SetProperty,
-    Local<Value>(), DEFAULT, DontDelete);
-  jsObj->SetAccessor(NanNew<String>("y"), GetProperty, SetProperty,
-    Local<Value>(), DEFAULT, DontDelete);
-}
-
-Point::~Point() {
-}
-
-double* Point::GetPropertyPtr(const char* name) {
-  if (strcmp("x", name) == 0) {
-    return &coords[0];
-  }
-  else if (strcmp("y", name) == 0) {
-    return &coords[1];
-  }
-  else {
-    return NULL;
-  }
-}
-
-NAN_GETTER(Point::GetProperty) {
-  NanScope();
-
-  NanUtf8String name(property);
-  Point* entry = ObjectWrap::Unwrap<Point>(args.Holder());
-
-  double* result = entry->GetPropertyPtr(*name);
-  if (result) {
-    NanReturnValue(NanNew<Number>(*result));
-  }
-
-  NanReturnUndefined();
-}
-
-NAN_SETTER(Point::SetProperty) {
-  NanScope();
-
-  NanUtf8String name(property);
-  Point* entry = ObjectWrap::Unwrap<Point>(args.Holder());
 
   double* result = entry->GetPropertyPtr(*name);
   if (result) {
