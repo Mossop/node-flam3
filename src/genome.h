@@ -15,13 +15,12 @@ using namespace node;
 
 class Genome : public node::ObjectWrap {
   public:
-    Genome(Handle<Object> jsObj, flam3_genome* cp);
-
     static void Export(Handle<v8::Object> exports);
 
     void CloneGenome(flam3_genome* cp);
 
   private:
+    Genome(Handle<Object> jsObj, flam3_genome* cp);
     ~Genome();
 
     static NAN_METHOD(Random);

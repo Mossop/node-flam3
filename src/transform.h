@@ -16,13 +16,13 @@ using namespace node;
 
 class Transform : public node::ObjectWrap {
   public:
-    Transform(Handle<Object> jsObj, Genome* genome, flam3_xform* xform);
-
     static Transform* NewInstance(Genome* genome, flam3_xform* cp);
     static void Export(Handle<v8::Object> exports);
 
   private:
+    Transform(Handle<Object> jsObj);
     ~Transform();
+    void Init(Genome* genome, flam3_xform* xform);
 
     static NAN_PROPERTY_GETTER(GetProperty);
     static NAN_PROPERTY_SETTER(SetProperty);

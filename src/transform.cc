@@ -6,17 +6,21 @@ Persistent<Function> Transform::constructor;
 
 property_entry Xform_Properties[] = XFORM_PROPERTIES;
 
-Transform::Transform(Handle<Object> jsObj, Genome* genome, flam3_xform* xform) {
-  assert(xform);
+Transform::Transform(Handle<Object> jsObj) {
   NanScope();
 
   Wrap(jsObj);
-
-  this->xform = xform;
-  jsObj->SetHiddenValue(NanNew<String>("flam3::Genome"), NanObjectWrapHandle(genome));
 }
 
 Transform::~Transform() {
+}
+
+void Transform::Init(Genome* genome, flam3_xform* xform) {
+  NanScope();
+
+  this->xform = xform;
+  // Keep the genome alive as long as the transform is alive
+  NanObjectWrapHandle(this)->SetHiddenValue(NanNew<String>("flam3::Genome"), NanObjectWrapHandle(genome));
 }
 
 NAN_PROPERTY_GETTER(Transform::GetProperty) {
@@ -119,7 +123,6 @@ void Transform::Export(Handle<Object> exports) {
     DeleteProperty, EnumerateProperties);
 
   NanAssignPersistent(constructor, tpl->GetFunction());
-  exports->Set(NanNew<String>("Transform"), tpl->GetFunction());
 }
 
 Transform* Transform::NewInstance(Genome* genome, flam3_xform* xform) {
@@ -129,39 +132,14 @@ Transform* Transform::NewInstance(Genome* genome, flam3_xform* xform) {
   Local<Value> argv[] = { NanNew<External>(genome), NanNew<External>(xform) };
   Local<Value> jsObj = NanNew<Function>(constructor)->NewInstance(2, argv);
   Transform* transform = ObjectWrap::Unwrap<Transform>(jsObj->ToObject());
+  transform->Init(genome, xform);
   return transform;
 }
 
 NAN_METHOD(Transform::New) {
   NanScope();
 
-  if (args.Length() != 2) {
-    NanThrowTypeError("Transforms cannot be created from JavaScript.");
-    NanReturnUndefined();
-  }
-
-  if (!args[0]->IsExternal()) {
-    NanThrowTypeError("Argument 0 was of an unexpected type.");
-    NanReturnUndefined();
-  }
-
-  if (!args[1]->IsExternal()) {
-    NanThrowTypeError("Argument 0 was of an unexpected type.");
-    NanReturnUndefined();
-  }
-
-  Genome* genome = reinterpret_cast<Genome*>(External::Cast(*args[0])->Value());
-  flam3_xform* xform = reinterpret_cast<flam3_xform*>(External::Cast(*args[1])->Value());
-  Transform* transform;
-
-  if (args.IsConstructCall()) {
-    // Invoked as constructor: `new Transform(...)`
-    transform = new Transform(args.This(), genome, xform);
-  }
-  else {
-    // Invoked as plain function `Transform(...)`, turn into construct call.
-    transform = NewInstance(genome, xform);
-  }
-
+  assert(args.IsConstructCall());
+  Transform* transform = new Transform(args.This());
   NanReturnValue(NanObjectWrapHandle(transform));
 }
