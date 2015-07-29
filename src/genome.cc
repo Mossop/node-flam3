@@ -94,9 +94,18 @@ void Genome::CloneGenome(flam3_genome* cp) {
   clear_cp(cp, flam3_defaults_on);
   flam3_copy(cp, &genome);
 
-  GetPaletteField(NanObjectWrapHandle(this), "palette", cp->palette);
-  GetColorField(NanObjectWrapHandle(this), "background", cp->background, BLACK);
-  GetPointField(NanObjectWrapHandle(this), "center", cp->center, ORIGIN);
+  Local<Object> jsObj = NanObjectWrapHandle(this);
+
+  GetPaletteField(jsObj, "palette", cp->palette);
+  GetColorField(jsObj, "background", cp->background, BLACK);
+  GetPointField(jsObj, "center", cp->center, ORIGIN);
+
+  Local<Array> transforms = Local<Array>::Cast(jsObj->GetHiddenValue(NanNew<String>("flam3::transforms")));
+  assert(transforms->Length() == (uint32_t)cp->num_xforms);
+  for (int i = 0; i < cp->num_xforms; i++) {
+    Transform* transform = ObjectWrap::Unwrap<Transform>(transforms->Get(i)->ToObject());
+    transform->CloneTransform(&cp->xform[i]);
+  }
 }
 
 void Genome::Export(Handle<Object> exports) {

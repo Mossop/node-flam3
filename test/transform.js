@@ -19,4 +19,23 @@ describe("transform", () => {
       should(xform.density).equal(0.25);
     }
   });
+
+  it("can access variation fields", () => {
+    let xml = fs.readFileSync(path.join(data_dir, "test0.flam3"), { encoding: "UTF8" });
+    let genomes = flam3.Genome.fromXMLString(xml, "test0.flam3");
+    should(genomes).have.length(1);
+    let genome = genomes[0];
+    let transform = genome.getTransform(0);
+
+    should(transform.spherical.strength).equal(1);
+    should(transform.linear.strength).equal(0);
+
+    transform.spherical.strength = 0.2;
+    transform.linear.strength = 0.7;
+
+    genome = flam3.Genome.fromXMLString(genome.toXMLString(), "stdin")[0];
+    transform = genome.getTransform(0);
+    should(transform.spherical.strength).equal(0.2);
+    should(transform.linear.strength).equal(0.7);
+  });
 });

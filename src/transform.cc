@@ -33,6 +33,12 @@ void Transform::Init(Genome* genome, flam3_xform* xform) {
       DEFINE_INT_PROPERTY(entry.name, field);
     }
   }
+
+  for (int i = 0; i < flam3_nvariations; i++) {
+    Local<Object> variation = NanNew<Object>();
+    SetDoubleField(variation, "strength", xform->var[i]);
+    NanObjectWrapHandle(this)->Set(NanNew<String>(flam3_variation_names[i]), variation);
+  }
 }
 
 void Transform::Export(Handle<Object> exports) {
@@ -46,6 +52,20 @@ void Transform::Export(Handle<Object> exports) {
   objtpl->SetInternalFieldCount(1);
 
   NanAssignPersistent(constructor, tpl->GetFunction());
+}
+
+void Transform::CloneTransform(flam3_xform* xform) {
+  for (int i = 0; i < flam3_nvariations; i++) {
+    xform->var[i] = 0;
+
+    Local<Value> varn = NanObjectWrapHandle(this)->Get(NanNew<String>(flam3_variation_names[i]));
+    if (varn.IsEmpty()) {
+      continue;
+    }
+
+    Local<Object> variation = varn->ToObject();
+    GetDoubleField(variation, "strength", xform->var[i]);
+  }
 }
 
 Transform* Transform::NewInstance(Genome* genome, flam3_xform* xform) {

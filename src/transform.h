@@ -18,6 +18,7 @@ class Transform : public node::ObjectWrap {
   public:
     static Transform* NewInstance(Genome* genome, flam3_xform* cp);
     static void Export(Handle<v8::Object> exports);
+    void CloneTransform(flam3_xform* xform);
 
   private:
     Transform(Handle<Object> jsObj);
