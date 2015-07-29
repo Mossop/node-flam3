@@ -183,7 +183,6 @@ NAN_SETTER(IntPropertySetter) {
 
   int* field = reinterpret_cast<int*>(Local<External>::Cast(args.Data())->Value());
   *field = value->Int32Value();
-  NanReturnValue(NanNew<Number>(*field));
 }
 
 NAN_GETTER(DoublePropertyGetter) {
@@ -198,5 +197,4 @@ NAN_SETTER(DoublePropertySetter) {
 
   double* field = reinterpret_cast<double*>(Local<External>::Cast(args.Data())->Value());
   *field = value->NumberValue();
-  NanReturnValue(NanNew<Number>(*field));
 }
