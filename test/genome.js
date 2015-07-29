@@ -53,28 +53,18 @@ function checkGenome(g) {
   });
 
   it("can access centers", () => {
-    should(g).has.properties("center", "rotationalCenter");
     should(g.center).has.properties(["x", "y"]);
-    should(g.rotationalCenter).has.properties(["x", "y"]);
 
     g.center.x = 0.5;
     g.center.y = 0.7;
-    g.rotationalCenter.x = 0.2;
-    g.rotationalCenter.y = 0.8;
 
     should(g.center.x).equal(0.5);
     should(g.center.y).equal(0.7);
-    should(g.rotationalCenter.x).equal(0.2);
-    should(g.rotationalCenter.y).equal(0.8);
 
     let parsed = flam3.Genome.fromXMLString(g.toXMLString(), "stdin")[0];
 
     should(parsed.center.x).equal(0.5);
     should(parsed.center.y).equal(0.7);
-
-    // These properties don't appear to exist in the XML
-    should(parsed.rotationalCenter.x).equal(0.5);
-    should(parsed.rotationalCenter.y).equal(0.7);
   });
 
   it("can access name property", () => {
@@ -127,7 +117,7 @@ function checkGenome(g) {
 
   it("cannot delete properties", () => {
     g.gamma = 4;
-    should(delete g.gamma).be.false();
+    should.throws(() => delete g.gamma, TypeError, "Cannot delete property");
     should(g.gamma).equal(4);
   });
 }

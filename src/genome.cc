@@ -6,6 +6,9 @@
 
 int32_t sGenomeCount = 0;
 
+rgb_t BLACK = { 0, 0 };
+point_t ORIGIN = { 0, 0 };
+
 void free_genome(flam3_genome & genome) {
   xmlFreeDoc(genome.edits);
   clear_cp(&genome, flam3_defaults_on);
@@ -33,16 +36,22 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
     flam3_copy(&genome, cp);
   }
 
+  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
+    property_entry entry = Genome_Properties[i];
+    char* field = reinterpret_cast<char*>(&genome) + entry.offset;
+
+    if (entry.type == DOUBLE) {
+      DEFINE_DOUBLE_PROPERTY(entry.name, field);
+    }
+    else {
+      DEFINE_INT_PROPERTY(entry.name, field);
+    }
+  }
+
   // Define child objects
   SetPaletteField(jsObj, "palette", genome.palette);
   SetColorField(jsObj, "background", genome.background);
   SetPointField(jsObj, "center", genome.center);
-  SetPointField(jsObj, "rotationalCenter", genome.rot_center);
-
-  // Set sane defaults in case child objects are deleted or invalid
-  SetColorValue(genome.background, 0, 0, 0);
-  SetPointValue(genome.center, 0, 0);
-  SetPointValue(genome.rot_center, 0, 0);
 
   Local<Array> transforms = NanNew<Array>(genome.num_xforms);
   for (int i = 0; i < genome.num_xforms; i++) {
@@ -80,102 +89,14 @@ NAN_SETTER(Genome::SetName) {
   strncpy(genome->genome.flame_name, *str, flam3_name_len);
 }
 
-NAN_PROPERTY_GETTER(Genome::GetProperty) {
-  NanScope();
-
-  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
-
-  NanUtf8String name(property);
-  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
-    if (strcmp(*name, Genome_Properties[i].name) == 0) {
-      char* field = reinterpret_cast<char*>(&obj->genome) + Genome_Properties[i].offset;
-
-      if (Genome_Properties[i].type == DOUBLE) {
-        NanReturnValue(NanNew<Number>(*(reinterpret_cast<double*>(field))));
-      }
-      else {
-        NanReturnValue(NanNew<Number>(*(reinterpret_cast<int*>(field))));
-      }
-    }
-  }
-
-  Local<Value> empty;
-  NanReturnValue(empty);
-}
-
-NAN_PROPERTY_SETTER(Genome::SetProperty) {
-  NanScope();
-
-  Genome* obj = ObjectWrap::Unwrap<Genome>(args.Holder());
-
-  NanUtf8String name(property);
-  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
-    if (strcmp(*name, Genome_Properties[i].name) == 0) {
-      char* field = reinterpret_cast<char*>(&obj->genome) + Genome_Properties[i].offset;
-
-      if (Genome_Properties[i].type == DOUBLE) {
-        *(reinterpret_cast<double*>(field)) = value->NumberValue();
-      }
-      else {
-        *(reinterpret_cast<int*>(field)) = value->NumberValue();
-      }
-      NanReturnValue(value);
-    }
-  }
-
-  Local<Value> empty;
-  NanReturnValue(empty);
-}
-
-NAN_PROPERTY_QUERY(Genome::QueryProperty) {
-  NanScope();
-
-  NanUtf8String name(property);
-  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
-    if (strcmp(*name, Genome_Properties[i].name) == 0) {
-      PropertyAttribute attr = DontDelete;
-      NanReturnValue(NanNew<Integer>(attr));
-    }
-  }
-
-  Local<Integer> empty;
-  NanReturnValue(empty);
-}
-
-NAN_PROPERTY_DELETER(Genome::DeleteProperty) {
-  NanScope();
-
-  NanUtf8String name(property);
-  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
-    if (strcmp(*name, Genome_Properties[i].name) == 0) {
-      NanReturnValue(NanNew<Boolean>(false));
-    }
-  }
-
-  Local<Boolean> empty;
-  NanReturnValue(empty);
-}
-
-NAN_PROPERTY_ENUMERATOR(Genome::EnumerateProperties) {
-  NanScope();
-
-  Local<Array> results = NanNew<Array>(GENOME_PROPERTY_COUNT);
-  for (int i = 0; i < GENOME_PROPERTY_COUNT; i++) {
-    results->Set(i, NanNew<String>(Genome_Properties[i].name));
-  }
-
-  NanReturnValue(results);
-}
-
 void Genome::CloneGenome(flam3_genome* cp) {
   memset(cp, 0, sizeof(flam3_genome));
   clear_cp(cp, flam3_defaults_on);
   flam3_copy(cp, &genome);
 
   GetPaletteField(NanObjectWrapHandle(this), "palette", cp->palette);
-  GetColorField(NanObjectWrapHandle(this), "background", cp->background);
-  GetPointField(NanObjectWrapHandle(this), "center", cp->center);
-  GetPointField(NanObjectWrapHandle(this), "rotationalCenter", cp->rot_center);
+  GetColorField(NanObjectWrapHandle(this), "background", cp->background, BLACK);
+  GetPointField(NanObjectWrapHandle(this), "center", cp->center, ORIGIN);
 }
 
 void Genome::Export(Handle<Object> exports) {
@@ -196,8 +117,6 @@ void Genome::Export(Handle<Object> exports) {
 
   Local<ObjectTemplate> objtpl = tpl->InstanceTemplate();
   objtpl->SetInternalFieldCount(1);
-  objtpl->SetNamedPropertyHandler(GetProperty, SetProperty, QueryProperty,
-    DeleteProperty, EnumerateProperties);
   objtpl->SetAccessor(NanNew<String>("transformCount"), GetTransformCount, NULL,
     Local<Value>(), DEFAULT, static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 

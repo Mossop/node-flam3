@@ -21,93 +21,18 @@ void Transform::Init(Genome* genome, flam3_xform* xform) {
   this->xform = xform;
   // Keep the genome alive as long as the transform is alive
   NanObjectWrapHandle(this)->SetHiddenValue(NanNew<String>("flam3::Genome"), NanObjectWrapHandle(genome));
-}
 
-NAN_PROPERTY_GETTER(Transform::GetProperty) {
-  NanScope();
-
-  Transform* obj = ObjectWrap::Unwrap<Transform>(args.Holder());
-
-  NanUtf8String name(property);
   for (int i = 0; i < XFORM_PROPERTY_COUNT; i++) {
-    if (strcmp(*name, Xform_Properties[i].name) == 0) {
-      char* field = reinterpret_cast<char*>(obj->xform) + Xform_Properties[i].offset;
+    property_entry entry = Xform_Properties[i];
+    char* field = reinterpret_cast<char*>(xform) + entry.offset;
 
-      if (Xform_Properties[i].type == DOUBLE) {
-        NanReturnValue(NanNew<Number>(*(reinterpret_cast<double*>(field))));
-      }
-      else {
-        NanReturnValue(NanNew<Number>(*(reinterpret_cast<int*>(field))));
-      }
+    if (entry.type == DOUBLE) {
+      DEFINE_DOUBLE_PROPERTY(entry.name, field);
+    }
+    else {
+      DEFINE_INT_PROPERTY(entry.name, field);
     }
   }
-
-  Local<Value> empty;
-  NanReturnValue(empty);
-}
-
-NAN_PROPERTY_SETTER(Transform::SetProperty) {
-  NanScope();
-
-  Transform* obj = ObjectWrap::Unwrap<Transform>(args.Holder());
-
-  NanUtf8String name(property);
-  for (int i = 0; i < XFORM_PROPERTY_COUNT; i++) {
-    if (strcmp(*name, Xform_Properties[i].name) == 0) {
-      char* field = reinterpret_cast<char*>(obj->xform) + Xform_Properties[i].offset;
-
-      if (Xform_Properties[i].type == DOUBLE) {
-        *(reinterpret_cast<double*>(field)) = value->NumberValue();
-      }
-      else {
-        *(reinterpret_cast<int*>(field)) = value->NumberValue();
-      }
-      NanReturnValue(value);
-    }
-  }
-
-  Local<Value> empty;
-  NanReturnValue(empty);
-}
-
-NAN_PROPERTY_QUERY(Transform::QueryProperty) {
-  NanScope();
-
-  NanUtf8String name(property);
-  for (int i = 0; i < XFORM_PROPERTY_COUNT; i++) {
-    if (strcmp(*name, Xform_Properties[i].name) == 0) {
-      PropertyAttribute attr = DontDelete;
-      NanReturnValue(NanNew<Integer>(attr));
-    }
-  }
-
-  Local<Integer> empty;
-  NanReturnValue(empty);
-}
-
-NAN_PROPERTY_DELETER(Transform::DeleteProperty) {
-  NanScope();
-
-  NanUtf8String name(property);
-  for (int i = 0; i < XFORM_PROPERTY_COUNT; i++) {
-    if (strcmp(*name, Xform_Properties[i].name) == 0) {
-      NanReturnValue(NanNew<Boolean>(false));
-    }
-  }
-
-  Local<Boolean> empty;
-  NanReturnValue(empty);
-}
-
-NAN_PROPERTY_ENUMERATOR(Transform::EnumerateProperties) {
-  NanScope();
-
-  Local<Array> results = NanNew<Array>(XFORM_PROPERTY_COUNT);
-  for (int i = 0; i < XFORM_PROPERTY_COUNT; i++) {
-    results->Set(i, NanNew<String>(Xform_Properties[i].name));
-  }
-
-  NanReturnValue(results);
 }
 
 void Transform::Export(Handle<Object> exports) {
@@ -119,8 +44,6 @@ void Transform::Export(Handle<Object> exports) {
 
   Local<ObjectTemplate> objtpl = tpl->InstanceTemplate();
   objtpl->SetInternalFieldCount(1);
-  objtpl->SetNamedPropertyHandler(GetProperty, SetProperty, QueryProperty,
-    DeleteProperty, EnumerateProperties);
 
   NanAssignPersistent(constructor, tpl->GetFunction());
 }

@@ -6,6 +6,8 @@
 
 using namespace v8;
 
+rgba_t WHITE = { 1, 1, 1, 1 };
+
 void SetIntField(Handle<Object> obj, const char * property, int & value) {
   NanScope();
 
@@ -48,11 +50,6 @@ void GetDoubleField(Handle<Object> obj, const char * property, double & value) {
   value = prop->NumberValue();
 }
 
-void SetPointValue(point_t point, double x, double y) {
-  point[0] = x;
-  point[1] = y;
-}
-
 void SetPointField(Handle<Object> obj, const char * property, point_t point) {
   NanScope();
 
@@ -63,8 +60,10 @@ void SetPointField(Handle<Object> obj, const char * property, point_t point) {
   obj->Set(NanNew<String>(property), prop);
 }
 
-void GetPointField(Handle<Object> obj, const char * property, point_t point) {
+void GetPointField(Handle<Object> obj, const char * property, point_t point, point_t def) {
   NanScope();
+
+  memcpy(point, def, sizeof(point_t));
 
   Local<Value> p = obj->Get(NanNew<String>(property));
   if (p.IsEmpty() || !p->IsObject()) {
@@ -74,19 +73,6 @@ void GetPointField(Handle<Object> obj, const char * property, point_t point) {
 
   GetDoubleField(prop, "x", point[0]);
   GetDoubleField(prop, "y", point[1]);
-}
-
-void SetColorValue(rgb_t color, double red, double green, double blue) {
-  color[0] = red;
-  color[1] = green;
-  color[2] = blue;
-}
-
-void SetColorValue(rgba_t color, double red, double green, double blue, double alpha) {
-  color[0] = red;
-  color[1] = green;
-  color[2] = blue;
-  color[3] = alpha;
 }
 
 void SetColorField(Handle<Object> obj, const char * property, rgb_t color) {
@@ -100,8 +86,10 @@ void SetColorField(Handle<Object> obj, const char * property, rgb_t color) {
   obj->Set(NanNew<String>(property), prop);
 }
 
-void GetColorField(Handle<Object> obj, const char * property, rgb_t color) {
+void GetColorField(Handle<Object> obj, const char * property, rgb_t color, rgb_t def) {
   NanScope();
+
+  memcpy(color, def, sizeof(rgb_t));
 
   Local<Value> p = obj->Get(NanNew<String>(property));
   if (p.IsEmpty() || !p->IsObject()) {
@@ -114,7 +102,7 @@ void GetColorField(Handle<Object> obj, const char * property, rgb_t color) {
   GetDoubleField(prop, "blue", color[2]);
 }
 
-void SetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color) {
+void SetColorAlphaField(Handle<Object> obj, const char * property, rgb_t color) {
   NanScope();
 
   Local<Object> prop = NanNew<Object>();
@@ -126,8 +114,10 @@ void SetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color)
   obj->Set(NanNew<String>(property), prop);
 }
 
-void GetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color) {
+void GetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color, rgba_t def) {
   NanScope();
+
+  memcpy(color, def, sizeof(rgba_t));
 
   Local<Value> p = obj->Get(NanNew<String>(property));
   if (p.IsEmpty() || !p->IsObject()) {
@@ -159,7 +149,7 @@ void GetPaletteField(Handle<Object> obj, const char * property, flam3_palette pa
 
   // Initialize to all white
   for (int i = 0; i < 256; i++) {
-    SetColorValue(palette[i].color, 1, 1, 1, 1);
+    memcpy(palette[i].color, WHITE, sizeof(rgba_t));
   }
 
   Local<Value> p = obj->Get(NanNew<String>(property));
@@ -171,7 +161,7 @@ void GetPaletteField(Handle<Object> obj, const char * property, flam3_palette pa
   char index[4];
   for (int i = 0; i < 256; i++) {
     sprintf(index, "%d", i);
-    GetColorAlphaField(prop, index, palette[i].color);
+    GetColorAlphaField(prop, index, palette[i].color, WHITE);
   }
 }
 
@@ -179,4 +169,34 @@ NAN_GETTER(ValuePropertyGetter) {
   NanScope();
 
   NanReturnValue(args.Data());
+}
+
+NAN_GETTER(IntPropertyGetter) {
+  NanScope();
+
+  int* field = reinterpret_cast<int*>(Local<External>::Cast(args.Data())->Value());
+  NanReturnValue(NanNew<Number>(*field));
+}
+
+NAN_SETTER(IntPropertySetter) {
+  NanScope();
+
+  int* field = reinterpret_cast<int*>(Local<External>::Cast(args.Data())->Value());
+  *field = value->Int32Value();
+  NanReturnValue(NanNew<Number>(*field));
+}
+
+NAN_GETTER(DoublePropertyGetter) {
+  NanScope();
+
+  double* field = reinterpret_cast<double*>(Local<External>::Cast(args.Data())->Value());
+  NanReturnValue(NanNew<Number>(*field));
+}
+
+NAN_SETTER(DoublePropertySetter) {
+  NanScope();
+
+  double* field = reinterpret_cast<double*>(Local<External>::Cast(args.Data())->Value());
+  *field = value->NumberValue();
+  NanReturnValue(NanNew<Number>(*field));
 }

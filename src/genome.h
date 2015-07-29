@@ -29,12 +29,6 @@ class Genome : public node::ObjectWrap {
     static NAN_GETTER(GetName);
     static NAN_SETTER(SetName);
 
-    static NAN_PROPERTY_GETTER(GetProperty);
-    static NAN_PROPERTY_SETTER(SetProperty);
-    static NAN_PROPERTY_QUERY(QueryProperty);
-    static NAN_PROPERTY_DELETER(DeleteProperty);
-    static NAN_PROPERTY_ENUMERATOR(EnumerateProperties);
-
     static NAN_METHOD(New);
     static Genome* NewInstance(flam3_genome* cp);
 

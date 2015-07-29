@@ -24,12 +24,6 @@ class Transform : public node::ObjectWrap {
     ~Transform();
     void Init(Genome* genome, flam3_xform* xform);
 
-    static NAN_PROPERTY_GETTER(GetProperty);
-    static NAN_PROPERTY_SETTER(SetProperty);
-    static NAN_PROPERTY_QUERY(QueryProperty);
-    static NAN_PROPERTY_DELETER(DeleteProperty);
-    static NAN_PROPERTY_ENUMERATOR(EnumerateProperties);
-
     static NAN_METHOD(New);
 
     static Persistent<Function> constructor;

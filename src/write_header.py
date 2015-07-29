@@ -18,6 +18,8 @@ f = open(target, "w")
 f.write("#define %s_PROPERTY_COUNT %d\n" % (prefix, len(properties)))
 f.write("#define %s_PROPERTIES { \\\n" % (prefix))
 for tokens in properties:
+    if len(tokens) < 2:
+        continue
     typ = "INT"
     if tokens[0] == "double":
         typ = "DOUBLE"
