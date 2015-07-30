@@ -6,9 +6,10 @@ const path = require("path");
 let data_dir = path.join(__dirname, "data");
 
 describe("transform", () => {
+  let xml = fs.readFileSync(path.join(data_dir, "test0.flam3"), { encoding: "UTF8" });
+  let genomes = flam3.Genome.fromXMLString(xml, "test0.flam3");
+
   it("should load correctly from xml", () => {
-    let xml = fs.readFileSync(path.join(data_dir, "test0.flam3"), { encoding: "UTF8" });
-    let genomes = flam3.Genome.fromXMLString(xml, "test0.flam3");
     should(genomes).have.length(1);
     let genome = genomes[0];
 
@@ -21,9 +22,6 @@ describe("transform", () => {
   });
 
   it("can access variation fields", () => {
-    let xml = fs.readFileSync(path.join(data_dir, "test0.flam3"), { encoding: "UTF8" });
-    let genomes = flam3.Genome.fromXMLString(xml, "test0.flam3");
-    should(genomes).have.length(1);
     let genome = genomes[0];
     let transform = genome.getTransform(0);
 
@@ -37,5 +35,32 @@ describe("transform", () => {
     transform = genome.getTransform(0);
     should(transform.spherical.strength).equal(0.2);
     should(transform.linear.strength).equal(0.7);
+  });
+
+  it("variation properties work", () => {
+    let genome = genomes[0];
+    let transform = genome.getTransform(0);
+
+    should(transform.blob.strength).equal(0);
+    should(transform.blob.low).equal(0);
+    should(transform.blob.high).equal(1);
+    should(transform.blob.waves).equal(1);
+
+    transform.blob = { strength: 1, low: 0.2, high: 0.3, waves: 0.7 };
+
+    should(transform.blob.strength).equal(1);
+    should(transform.blob.low).equal(0.2);
+    should(transform.blob.high).equal(0.3);
+    should(transform.blob.waves).equal(0.7);
+
+    genome = flam3.Genome.fromXMLString(genome.toXMLString(), "stdin")[0];
+    transform = genome.getTransform(0);
+
+    should(transform.blob.strength).equal(1);
+    should(transform.blob.low).equal(0.2);
+    should(transform.blob.high).equal(0.3);
+    should(transform.blob.waves).equal(0.7);
+
+    should(transform.wedge_julia).have.properties([ "angle", "count", "power", "dist" ]);
   });
 });

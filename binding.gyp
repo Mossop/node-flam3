@@ -26,6 +26,11 @@
           "inputs": [ "src/write_header.py", "src/xform_properties" ],
           "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/xform_properties.h" ],
           "action": [ "python", "src/write_header.py", "src/xform_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/xform_properties.h", "flam3_xform", "XFORM" ]
+        }, {
+          "action_name": "generate-transform-properties",
+          "inputs": [ "src/write_variations.py", "src/variation_properties" ],
+          "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/variation_properties.h" ],
+          "action": [ "python", "src/write_variations.py", "src/variation_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/variation_properties.h" ]
         }
       ]
     }, {

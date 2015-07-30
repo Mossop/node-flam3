@@ -11,14 +11,14 @@ extern "C" {
 
 using namespace v8;
 
-enum Property_Type {
+enum property_type {
   INT = 0,
   DOUBLE = 1
 };
 
 typedef struct {
   const char* name;
-  Property_Type type;
+  property_type type;
   size_t offset;
 } property_entry;
 

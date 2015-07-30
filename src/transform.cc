@@ -1,6 +1,7 @@
 #include "transform.h"
 #include "fields.h"
 #include "includes/xform_properties.h"
+#include "includes/variation_properties.h"
 
 Persistent<Function> Transform::constructor;
 
@@ -35,9 +36,11 @@ void Transform::Init(Genome* genome, flam3_xform* xform) {
   }
 
   for (int i = 0; i < flam3_nvariations; i++) {
+    char* var_name = flam3_variation_names[i];
     Local<Object> variation = NanNew<Object>();
     SetDoubleField(variation, "strength", xform->var[i]);
-    NanObjectWrapHandle(this)->Set(NanNew<String>(flam3_variation_names[i]), variation);
+    DEFINE_VARIATION_PROPERTIES
+    NanObjectWrapHandle(this)->Set(NanNew<String>(var_name), variation);
   }
 }
 
@@ -55,16 +58,20 @@ void Transform::Export(Handle<Object> exports) {
 }
 
 void Transform::CloneTransform(flam3_xform* xform) {
+  RESET_VARIATION_PROPERTIES
+
   for (int i = 0; i < flam3_nvariations; i++) {
+    char* var_name = flam3_variation_names[i];
     xform->var[i] = 0;
 
-    Local<Value> varn = NanObjectWrapHandle(this)->Get(NanNew<String>(flam3_variation_names[i]));
+    Local<Value> varn = NanObjectWrapHandle(this)->Get(NanNew<String>(var_name));
     if (varn.IsEmpty()) {
       continue;
     }
 
     Local<Object> variation = varn->ToObject();
     GetDoubleField(variation, "strength", xform->var[i]);
+    GET_VARIATION_PROPERTIES
   }
 }
 
