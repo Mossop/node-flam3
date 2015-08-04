@@ -7,8 +7,8 @@ if (len(sys.argv) != 5):
 
 source = sys.argv[1]
 target = sys.argv[2]
-struct = sys.argv[3]
-prefix = sys.argv[4]
+struct = sys.argv[3][len("--struct="):]
+prefix = sys.argv[4][len("--prefix="):]
 
 f = open(source, "r")
 properties = [l.strip().split() for l in f.readlines()]
@@ -20,8 +20,8 @@ f.write("#define %s_PROPERTIES { \\\n" % (prefix))
 for tokens in properties:
     if len(tokens) < 2:
         continue
-    typ = "INT"
+    typ = "INT_FIELD"
     if tokens[0] == "double":
-        typ = "DOUBLE"
+        typ = "DOUBLE_FIELD"
     f.write("  { \"%s\", %s, offsetof(%s, %s) }, \\\n" % (tokens[1], typ, struct, tokens[1]))
 f.write("}\n")

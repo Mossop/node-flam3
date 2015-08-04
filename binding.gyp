@@ -20,12 +20,12 @@
           "action_name": "generate-genome-properties",
           "inputs": [ "src/write_header.py", "src/genome_properties" ],
           "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/genome_properties.h" ],
-          "action": [ "python", "src/write_header.py", "src/genome_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/genome_properties.h", "flam3_genome", "GENOME" ]
+          "action": [ "python", "src/write_header.py", "src/genome_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/genome_properties.h", "--struct=flam3_genome", "--prefix=GENOME" ]
         }, {
           "action_name": "generate-xform-properties",
           "inputs": [ "src/write_header.py", "src/xform_properties" ],
           "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/xform_properties.h" ],
-          "action": [ "python", "src/write_header.py", "src/xform_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/xform_properties.h", "flam3_xform", "XFORM" ]
+          "action": [ "python", "src/write_header.py", "src/xform_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/xform_properties.h", "--struct=flam3_xform", "--prefix=XFORM" ]
         }, {
           "action_name": "generate-transform-properties",
           "inputs": [ "src/write_variations.py", "src/variation_properties" ],
@@ -42,12 +42,16 @@
         "src/transform.cc"
       ],
       "dependencies": [ "deps/libflam3.gyp:libflam3",
-                        "generate-properties",
-                        "render-tests" ],
+                        "generate-properties" ],
       "include_dirs": [
         "<!(node -e \"require('nan')\")",
         "<(SHARED_INTERMEDIATE_DIR)"
       ],
+      "conditions": [
+        [ 'OS != "win"', {
+          "dependencies": [ "render-tests" ]
+        }]
+      ]
     }
   ]
 }

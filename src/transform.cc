@@ -27,7 +27,7 @@ void Transform::Init(Genome* genome, flam3_xform* xform) {
     property_entry entry = Xform_Properties[i];
     char* field = reinterpret_cast<char*>(xform) + entry.offset;
 
-    if (entry.type == DOUBLE) {
+    if (entry.type == DOUBLE_FIELD) {
       DEFINE_DOUBLE_PROPERTY(entry.name, field);
     }
     else {

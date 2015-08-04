@@ -1,6 +1,10 @@
 #include <node.h>
 #include <nan.h>
+
+#ifdef WIN32
+#else
 #include <dlfcn.h>
+#endif
 
 extern "C" {
 #include <flam3.h>
@@ -36,6 +40,17 @@ void Init(Handle<Object> exports, Handle<Value> module) {
 #else
 void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
 #endif
+
+#ifdef WIN32
+  char path[MAX_PATH];
+  HMODULE hm = NULL;
+
+  GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                     GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+    (LPCSTR) &sGenomeCount, &hm);
+  GetModuleFileNameA(hm, path, sizeof(path));
+  _putenv_s("flam3_palettes", path);
+#else
   // Find the library path and set the palettes environment variable
   Dl_info info;
   if (dladdr(&sGenomeCount, &info)) {
@@ -49,6 +64,7 @@ void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
     strcpy(path + len, "flam3-palettes.xml");
     setenv("flam3_palettes", path, 1);
   }
+#endif
 
   flam3_srandom();
 

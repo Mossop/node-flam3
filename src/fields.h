@@ -12,8 +12,8 @@ extern "C" {
 using namespace v8;
 
 enum property_type {
-  INT = 0,
-  DOUBLE = 1
+  INT_FIELD = 0,
+  DOUBLE_FIELD = 1
 };
 
 typedef struct {

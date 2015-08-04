@@ -4,6 +4,10 @@
 #include <isaac.h>
 #include "includes/genome_properties.h"
 
+#ifdef WIN32
+#define random()  (rand() ^ (rand()<<15))
+#endif
+
 int32_t sGenomeCount = 0;
 
 rgb_t BLACK = { 0, 0 };
@@ -40,7 +44,7 @@ Genome::Genome(Handle<Object> jsObj, flam3_genome* cp) {
     property_entry entry = Genome_Properties[i];
     char* field = reinterpret_cast<char*>(&genome) + entry.offset;
 
-    if (entry.type == DOUBLE) {
+    if (entry.type == DOUBLE_FIELD) {
       DEFINE_DOUBLE_PROPERTY(entry.name, field);
     }
     else {
@@ -143,8 +147,7 @@ Genome* Genome::NewInstance(flam3_genome* cp) {
     jsObj = NanNew<Function>(constructor)->NewInstance(1, argv);
   }
   else {
-    Local<Value> argv[0];
-    jsObj = NanNew<Function>(constructor)->NewInstance(0, argv);
+    jsObj = NanNew<Function>(constructor)->NewInstance(0, NULL);
   }
 
   Genome* genome = ObjectWrap::Unwrap<Genome>(jsObj->ToObject());
@@ -244,7 +247,7 @@ NAN_METHOD(Genome::Random) {
 
   int num_vars = 0;
   int num_novars = sizeof(novars) / sizeof(int);
-  int variations[flam3_nvariations - num_novars];
+  int* variations = reinterpret_cast<int*>(malloc(sizeof(int) * (flam3_nvariations - num_novars)));
 
   for (int i = 0; i < flam3_nvariations; i++) {
     variations[num_vars++] = i;
@@ -266,6 +269,7 @@ NAN_METHOD(Genome::Random) {
   int symmetry = syms[random() % 16];
   int spec_xforms = 0;
   flam3_random(&genome, variations, num_vars, symmetry, spec_xforms);
+  free(variations);
 
   double bmin[2], bmax[2];
   flam3_estimate_bounding_box(&genome, 0.01, 100000, bmin, bmax, &frame.rc);
