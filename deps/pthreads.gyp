@@ -26,13 +26,17 @@
           "action": [ "python", "fixlines.py", "<(pthreads_dir)/Pre-built.2/include/pthread.h" ]
         }
       ],
+      "copies": [
+        {
+          "destination": "<(PRODUCT_DIR)",
+          "files": [ "<(SHARED_INTERMEDIATE_DIR)\\pthreads\\Pre-built.2\\dll\\x64\\pthreadVC2.dll" ]
+        }
+      ],
       "direct_dependent_settings": {
-        "defines": [ "PTW32_STATIC_LIB=1" ],
         "include_dirs": [ "<(pthreads_dir)/Pre-built.2/include" ],
-        "library_dirs": [ "<(pthreads_dir)/Pre-built.2/lib/x86" ],
-        "libraries": [
-          "-lpthreadVC2.lib"
-        ],
+      },
+      "all_dependent_settings": {
+        "libraries": [ "<(pthreads_dir)/Pre-built.2/lib/x64/pthreadVC2.lib" ]
       },
     }
   ]
