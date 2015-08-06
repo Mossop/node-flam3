@@ -6,7 +6,8 @@
   },
   "targets": [
     {
-      "target_name": "pthreads",
+      "target_name": "download_pthreads",
+      "link_dependency": 1,
       "type": "none",
       "actions": [
         {
@@ -21,15 +22,18 @@
           "action": [ "python", "unzip.py", "--strip-components=0", "<(pthreads_archive)", "<(pthreads_dir)" ]
         }, {
           "action_name": "fixlines",
-          "inputs": [ "<(pthreads_dir)/Pre-built.2/include/pthread.h" ],
+          "inputs": [ "fixlines.py", "<(pthreads_dir)/Pre-built.2/include/pthread.h" ],
           "outputs": [ "<(pthreads_dir)/Pre-built.2/include/dummy.h" ],
           "action": [ "python", "fixlines.py", "<(pthreads_dir)/Pre-built.2/include/pthread.h" ]
         }
       ],
+    }, {
+      "target_name": "pthreads",
+      "type": "none",
       "copies": [
         {
           "destination": "<(PRODUCT_DIR)",
-          "files": [ "<(SHARED_INTERMEDIATE_DIR)\\pthreads\\Pre-built.2\\dll\\x64\\pthreadVC2.dll" ]
+          "files": [ "<(SHARED_INTERMEDIATE_DIR)/pthreads/Pre-built.2/dll/x64/pthreadVC2.dll" ]
         }
       ],
       "direct_dependent_settings": {

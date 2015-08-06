@@ -58,6 +58,22 @@
       "xcode_settings": {
         "OTHER_CFLAGS": [ "<@(flam3_cflags)" ],
       },
+      "configurations": {
+        "Release": {
+          "msvs_settings": {
+            "VCCLCompilerTool": {
+              'WholeProgramOptimization': 'false'
+            },
+            "VCLibrarianTool": {
+              "LinkTimeCodeGeneration": "false",
+              "AdditionalOptions!": [ "/LTCG" ]
+            },
+            "VCLinkerTool": {
+              "LinkTimeCodeGeneration": 0,
+            }
+          },
+        }
+      },
       "direct_dependent_settings": {
         "include_dirs": [ "<(flam3_dir)",
                           "../node_modules/libxmljs/vendor/libxml/include" ],
@@ -70,7 +86,11 @@
       ],
       "conditions": [
         [ 'OS == "win"', {
-          "dependencies": [ "fix_defines", "pthreads.gyp:pthreads" ]
+          "dependencies": [
+            "fix_defines",
+            "pthreads.gyp:download_pthreads",
+            "pthreads.gyp:pthreads"
+          ]
         }]
       ]
     }, {

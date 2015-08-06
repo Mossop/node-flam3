@@ -14,6 +14,22 @@
         "<!(node -e \"require('nan')\")",
         "<(SHARED_INTERMEDIATE_DIR)"
       ],
+      "configurations": {
+        "Release": {
+          "msvs_settings": {
+            "VCCLCompilerTool": {
+              'WholeProgramOptimization': 'false'
+            },
+            "VCLibrarianTool": {
+              "LinkTimeCodeGeneration": "false",
+              "AdditionalOptions!": [ "/LTCG" ]
+            },
+            "VCLinkerTool": {
+              "LinkTimeCodeGeneration": 0,
+            }
+          },
+        }
+      },
       "conditions": [
         [ 'OS != "win"', {
           "dependencies": [ "deps/deps.gyp:render-tests" ]
