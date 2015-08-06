@@ -48,6 +48,12 @@ void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
                      GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
     (LPCSTR) &sGenomeCount, &hm);
   GetModuleFileNameA(hm, path, sizeof(path));
+
+  int len = strlen(path);
+  while (path[len - 1] != '\\') {
+    len--;
+  }
+  strcpy(path + len, "flam3-palettes.xml");
   _putenv_s("flam3_palettes", path);
 #else
   // Find the library path and set the palettes environment variable
