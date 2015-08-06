@@ -1,7 +1,7 @@
 {
   "variables": {
     "flam3_version": "v3.1.1",
-    "flam3_source": "https://github.com/scottdraves/flam3/archive/<(flam3_version).zip",
+    "flam3_source": "https://github.com/scottdraves/flam3/archive/e0801543538451234d7a8a240ba3b417cbda5b21.zip",
     "flam3_archive": "<(INTERMEDIATE_DIR)/flam3.zip",
     "flam3_dir": "<(SHARED_INTERMEDIATE_DIR)/flam3",
     "flam3_cflags": [
@@ -28,6 +28,16 @@
           "action": [ "python", "unzip.py", "--strip-components=1", "<(flam3_archive)", "<(flam3_dir)" ]
         }
       ],
+    }, {
+      "target_name": "fix_defines",
+      "actions": [
+        {
+          "action_name": "append",
+          "inputs": [ "<(flam3_dir)/config.h" ],
+          "outputs": [ "<(flam3_dir)/dummy" ],
+          "action": [ "python", "append.py", "<(flam3_dir)/config.h", "win_defines.h" ]
+        }
+      ]
     }, {
       "target_name": "libflam3",
       "type": "static_library",
@@ -60,7 +70,7 @@
       ],
       "conditions": [
         [ 'OS == "win"', {
-          "dependencies": [ "pthreads.gyp:pthreads" ]
+          "dependencies": [ "fix_defines", "pthreads.gyp:pthreads" ]
         }]
       ]
     }, {
