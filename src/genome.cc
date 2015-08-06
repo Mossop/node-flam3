@@ -4,7 +4,7 @@
 #include <isaac.h>
 #include "includes/genome_properties.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #define random()  (rand() ^ (rand()<<15))
 #endif
 

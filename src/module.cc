@@ -1,8 +1,7 @@
 #include <node.h>
 #include <nan.h>
 
-#ifdef WIN32
-#else
+#ifndef _WIN32
 #include <dlfcn.h>
 #endif
 
@@ -41,7 +40,7 @@ void Init(Handle<Object> exports, Handle<Value> module) {
 void Init(Handle<Object> exports, Handle<Value> module, void* priv) {
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
   char path[MAX_PATH];
   HMODULE hm = NULL;
 
