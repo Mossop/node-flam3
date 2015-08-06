@@ -34,8 +34,8 @@
         {
           "action_name": "append",
           "inputs": [ "<(flam3_dir)/config.h" ],
-          "outputs": [ "<(flam3_dir)/dummy" ],
-          "action": [ "python", "append.py", "<(flam3_dir)/config.h", "win_defines.h" ]
+          "outputs": [ "<(flam3_dir)/config.h.fixed" ],
+          "action": [ "python", "append.py", "<(flam3_dir)/config.h", "win_defines.h", "<(flam3_dir)/config.h.fixed" ]
         }
       ]
     }, {
@@ -62,15 +62,8 @@
         "Release": {
           "msvs_settings": {
             "VCCLCompilerTool": {
-              'WholeProgramOptimization': 'false'
+              "Optimization": 0
             },
-            "VCLibrarianTool": {
-              "LinkTimeCodeGeneration": "false",
-              "AdditionalOptions!": [ "/LTCG" ]
-            },
-            "VCLinkerTool": {
-              "LinkTimeCodeGeneration": 0,
-            }
           },
         }
       },

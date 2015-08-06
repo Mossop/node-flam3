@@ -23,8 +23,8 @@
         }, {
           "action_name": "fixlines",
           "inputs": [ "fixlines.py", "<(pthreads_dir)/Pre-built.2/include/pthread.h" ],
-          "outputs": [ "<(pthreads_dir)/Pre-built.2/include/dummy.h" ],
-          "action": [ "python", "fixlines.py", "<(pthreads_dir)/Pre-built.2/include/pthread.h" ]
+          "outputs": [ "<(pthreads_dir)/Pre-built.2/include/pthread.h.fixed" ],
+          "action": [ "python", "fixlines.py", "<(pthreads_dir)/Pre-built.2/include/pthread.h", "<(pthreads_dir)/Pre-built.2/include/pthread.h.fixed" ]
         }
       ],
     }, {
@@ -33,14 +33,14 @@
       "copies": [
         {
           "destination": "<(PRODUCT_DIR)",
-          "files": [ "<(SHARED_INTERMEDIATE_DIR)/pthreads/Pre-built.2/dll/x64/pthreadVC2.dll" ]
+          "files": [ "<(SHARED_INTERMEDIATE_DIR)/pthreads/Pre-built.2/dll/<(host_arch)/pthreadVC2.dll" ]
         }
       ],
       "direct_dependent_settings": {
         "include_dirs": [ "<(pthreads_dir)/Pre-built.2/include" ],
       },
       "all_dependent_settings": {
-        "libraries": [ "<(pthreads_dir)/Pre-built.2/lib/x64/pthreadVC2.lib" ]
+        "libraries": [ "<(pthreads_dir)/Pre-built.2/lib/<(host_arch)/pthreadVC2.lib" ]
       },
     }
   ]
