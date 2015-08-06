@@ -1,4 +1,5 @@
 const fs = require("fs");
+const os = require("os");
 const should = require("should");
 const flam3 = require("../lib/index.js");
 const { PNG } = require("pngjs");
@@ -53,6 +54,9 @@ function testImage(root) {
 }
 
 describe("render", () => {
+  if (os.type() == "Windows_NT")
+    return;
+
   testImage("test0");
   testImage("test1");
 });
