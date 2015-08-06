@@ -25,7 +25,7 @@ def extract(zip, entry, target):
     if not os.path.exists(parent):
         os.makedirs(parent)
     zfile = zip.open(entry, "r")
-    rfile = open(target, "w")
+    rfile = open(target, "wb")
     copyfileobj(zfile, rfile)
     rfile.close()
     zfile.close()
