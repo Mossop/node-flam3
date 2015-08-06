@@ -19,7 +19,7 @@
     "pngjs": "0"
   },
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha --expose-gc --compilers js:babel/register",
+    "test": "mocha --expose-gc --compilers js:babel/register",
     "install": "node-gyp rebuild"
   },
   "repository": {
