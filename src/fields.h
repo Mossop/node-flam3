@@ -25,6 +25,7 @@ typedef struct {
 typedef double point_t[2];
 typedef double rgb_t[3];
 typedef double rgba_t[4];
+typedef double coefficients[3][2];
 
 void SetIntField(Handle<Object> obj, const char * property, int & value);
 void GetIntField(Handle<Object> obj, const char * property, int & value);
@@ -43,6 +44,9 @@ void GetColorAlphaField(Handle<Object> obj, const char * property, rgba_t color,
 
 void SetPaletteField(Handle<Object> obj, const char * property, flam3_palette palette);
 void GetPaletteField(Handle<Object> obj, const char * property, flam3_palette palette);
+
+void SetCoefficientsField(Handle<Object> obj, const char * property, coefficients c);
+void GetCoefficientsField(Handle<Object> obj, const char * property, coefficients c);
 
 NAN_GETTER(ValuePropertyGetter);
 NAN_GETTER(IntPropertyGetter);

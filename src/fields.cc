@@ -75,6 +75,29 @@ void GetPointField(Handle<Object> obj, const char * property, point_t point, poi
   GetDoubleField(prop, "y", point[1]);
 }
 
+void SetPointArrayField(Handle<Object> obj, const char * property, point_t point) {
+  NanScope();
+
+  Local<Array> prop = NanNew<Array>(2);
+  SetDoubleField(prop, "0", point[0]);
+  SetDoubleField(prop, "1", point[1]);
+
+  obj->Set(NanNew<String>(property), prop);
+}
+
+void GetPointArrayField(Handle<Object> obj, const char * property, point_t point) {
+  NanScope();
+
+  Local<Value> p = obj->Get(NanNew<String>(property));
+  if (p.IsEmpty() || !p->IsObject()) {
+    return;
+  }
+  Local<Object> prop = p->ToObject();
+
+  GetDoubleField(prop, "0", point[0]);
+  GetDoubleField(prop, "1", point[1]);
+}
+
 void SetColorField(Handle<Object> obj, const char * property, rgb_t color) {
   NanScope();
 
@@ -163,6 +186,38 @@ void GetPaletteField(Handle<Object> obj, const char * property, flam3_palette pa
     sprintf(index, "%d", i);
     GetColorAlphaField(prop, index, palette[i].color, WHITE);
   }
+}
+
+void SetCoefficientsField(Handle<Object> obj, const char * property, coefficients c) {
+  NanScope();
+
+  Local<Array> prop = NanNew<Array>(3);
+  SetPointArrayField(prop, "0", c[0]);
+  SetPointArrayField(prop, "1", c[1]);
+  SetPointArrayField(prop, "2", c[2]);
+
+  obj->Set(NanNew<String>(property), prop);
+}
+
+void GetCoefficientsField(Handle<Object> obj, const char * property, coefficients c) {
+  NanScope();
+
+  // Initialize to identity matrix
+  c[0][0] = 1.0;
+  c[0][1] = 0.0;
+  c[1][0] = 0.0;
+  c[1][1] = 1.0;
+  c[2][0] = 0.0;
+  c[2][1] = 0.0;
+
+  Local<Value> p = obj->Get(NanNew<String>(property));
+  if (p.IsEmpty() || !p->IsArray()) {
+    return;
+  }
+  Local<Object> prop = p->ToObject();
+  GetPointArrayField(prop, "0", c[0]);
+  GetPointArrayField(prop, "1", c[1]);
+  GetPointArrayField(prop, "2", c[2]);
 }
 
 NAN_GETTER(ValuePropertyGetter) {

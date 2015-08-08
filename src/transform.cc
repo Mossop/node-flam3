@@ -35,6 +35,9 @@ void Transform::Init(Genome* genome, flam3_xform* xform) {
     }
   }
 
+  SetCoefficientsField(NanObjectWrapHandle(this), "coefficients", xform->c);
+  SetCoefficientsField(NanObjectWrapHandle(this), "post", xform->post);
+
   for (int i = 0; i < flam3_nvariations; i++) {
     char* var_name = flam3_variation_names[i];
     Local<Object> variation = NanNew<Object>();
@@ -58,6 +61,9 @@ void Transform::Export(Handle<Object> exports) {
 }
 
 void Transform::CloneTransform(flam3_xform* xform) {
+  GetCoefficientsField(NanObjectWrapHandle(this), "coefficients", xform->c);
+  GetCoefficientsField(NanObjectWrapHandle(this), "post", xform->post);
+
   RESET_VARIATION_PROPERTIES
 
   for (int i = 0; i < flam3_nvariations; i++) {

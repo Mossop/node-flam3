@@ -63,4 +63,35 @@ describe("transform", () => {
 
     should(transform.wedge_julia).have.properties([ "angle", "count", "power", "dist" ]);
   });
+
+  it("can access coefficients", () => {
+    let genome = genomes[0];
+    let transform = genome.getTransform(0);
+
+    should(transform.coefficients).eql([
+      [ -0.681206, -0.0779465 ],
+      [ 0.20769, 0.755065 ],
+      [ -0.0416126, -0.262334 ]
+    ]);
+
+    should(transform.post).eql([
+      [ 1, 0 ],
+      [ 0, 1 ],
+      [ 0, 0 ]
+    ]);
+
+    transform = genome.getTransform(1);
+
+    should(transform.coefficients).eql([
+      [ 0.953766, 0.48396 ],
+      [ 0.43268, -0.0542476 ],
+      [ 0.642503, -0.995898 ]
+    ]);
+
+    should(transform.post).eql([
+      [ 1, 0 ],
+      [ 0, 1 ],
+      [ 0, 0 ]
+    ]);
+  });
 });
