@@ -14,17 +14,17 @@
           "action_name": "download",
           "inputs": [ "download.py" ],
           "outputs": [ "<(pthreads_archive)" ],
-          "action": [ "python", "download.py", "--url=<(pthreads_source)", "<(pthreads_archive)" ]
+          "action": [ "python", "<@(_inputs)", "--url=<(pthreads_source)", "<@(_outputs)" ]
         }, {
           "action_name": "extract",
-          "inputs": [ "<(pthreads_archive)" ],
+          "inputs": [ "unzip.py", "<(pthreads_archive)" ],
           "outputs": [ "<(pthreads_dir)/Pre-built.2/include/pthread.h" ],
-          "action": [ "python", "unzip.py", "--strip-components=0", "<(pthreads_archive)", "<(pthreads_dir)" ]
+          "action": [ "python", "<@(_inputs)", "--strip-components=0", "<(pthreads_dir)" ]
         }, {
           "action_name": "fixlines",
           "inputs": [ "fixlines.py", "<(pthreads_dir)/Pre-built.2/include/pthread.h" ],
           "outputs": [ "<(pthreads_dir)/Pre-built.2/include/pthread.h.fixed" ],
-          "action": [ "python", "fixlines.py", "<(pthreads_dir)/Pre-built.2/include/pthread.h", "<(pthreads_dir)/Pre-built.2/include/pthread.h.fixed" ]
+          "action": [ "python", "<@(_inputs)", "<@(_outputs)" ]
         }
       ],
     }, {

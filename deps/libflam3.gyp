@@ -20,12 +20,12 @@
           "action_name": "download",
           "inputs": [ "download.py" ],
           "outputs": [ "<(flam3_archive)" ],
-          "action": [ "python", "download.py", "--url=<(flam3_source)", "<(flam3_archive)" ]
+          "action": [ "python", "<@(_inputs)", "--url=<(flam3_source)", "<@(_outputs)" ]
         }, {
           "action_name": "extract",
-          "inputs": [ "<(flam3_archive)" ],
+          "inputs": [ "unzip.py", "<(flam3_archive)" ],
           "outputs": [ "<(flam3_dir)/flam3.c" ],
-          "action": [ "python", "unzip.py", "--strip-components=1", "<(flam3_archive)", "<(flam3_dir)" ]
+          "action": [ "python", "<@(_inputs)", "--strip-components=1", "<(flam3_dir)" ]
         }
       ],
     }, {
@@ -33,9 +33,9 @@
       "actions": [
         {
           "action_name": "append",
-          "inputs": [ "<(flam3_dir)/config.h" ],
+          "inputs": [ "append.py", "<(flam3_dir)/config.h", "win_defines.h" ],
           "outputs": [ "<(flam3_dir)/config.h.fixed" ],
-          "action": [ "python", "append.py", "<(flam3_dir)/config.h", "win_defines.h", "<(flam3_dir)/config.h.fixed" ]
+          "action": [ "python", "<@(_inputs)", "<@(_outputs)" ]
         }
       ]
     }, {

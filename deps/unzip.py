@@ -7,8 +7,8 @@ if len(sys.argv) != 4:
     print("Incorrect number of arguments: %s\n" % (" ".join(sys.argv)))
     sys.exit(1)
 
-strip = int(sys.argv[1][len("--strip-components="):])
-archive = sys.argv[2]
+strip = int(sys.argv[2][len("--strip-components="):])
+archive = sys.argv[1]
 path = sys.argv[3]
 
 print("Extracting %s to %s\n" % (archive, path))

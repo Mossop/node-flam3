@@ -20,17 +20,17 @@
           "action_name": "generate-genome-properties",
           "inputs": [ "../src/write_header.py", "../src/genome_properties" ],
           "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/genome_properties.h" ],
-          "action": [ "python", "../src/write_header.py", "../src/genome_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/genome_properties.h", "--struct=flam3_genome", "--prefix=GENOME" ]
+          "action": [ "python", "<@(_inputs)", "<@(_outputs)", "--struct=flam3_genome", "--prefix=GENOME" ]
         }, {
           "action_name": "generate-xform-properties",
           "inputs": [ "../src/write_header.py", "../src/xform_properties" ],
           "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/xform_properties.h" ],
-          "action": [ "python", "../src/write_header.py", "../src/xform_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/xform_properties.h", "--struct=flam3_xform", "--prefix=XFORM" ]
+          "action": [ "python", "<@(_inputs)", "<@(_outputs)", "--struct=flam3_xform", "--prefix=XFORM" ]
         }, {
           "action_name": "generate-transform-properties",
           "inputs": [ "../src/write_variations.py", "../src/variation_properties" ],
           "outputs": [ "<(SHARED_INTERMEDIATE_DIR)/includes/variation_properties.h" ],
-          "action": [ "python", "../src/write_variations.py", "../src/variation_properties", "<(SHARED_INTERMEDIATE_DIR)/includes/variation_properties.h" ]
+          "action": [ "python", "<@(_inputs)", "<@(_outputs)" ]
         }
       ]
     }
